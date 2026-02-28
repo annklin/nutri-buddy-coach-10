@@ -1,18 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, AlertTriangle } from 'lucide-react';
+import { X, Send, Camera, Loader2, AlertTriangle, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { parseFoodInput, lookupFood, getAvailableFoods } from '@/lib/calories';
-import { saveEntry, getTodayTotals, incrementAdCount, getAdCount, isPremium } from '@/lib/storage';
+import { Textarea } from '@/components/ui/textarea';
+import { saveEntry, getTodayTotals, incrementAdCount, isPremium } from '@/lib/storage';
 import { FoodEntry, NutrientInfo } from '@/types';
-
-const PORTION_TYPES = [
-  { label: 'g', factor: 1 },
-  { label: 'unidade', factor: 100 },
-  { label: 'colher', factor: 15 },
-  { label: 'fatia', factor: 30 },
-];
+import { supabase } from '@/integrations/supabase/client';
 
 interface FoodEntryDialogProps {
   open: boolean;
@@ -22,68 +15,98 @@ interface FoodEntryDialogProps {
   onShowAd: () => void;
 }
 
+interface AIFood {
+  name: string;
+  quantity: string;
+  grams: number;
+  nutrients: NutrientInfo;
+  isEstimate?: boolean;
+}
+
+interface AIResponse {
+  foods?: AIFood[];
+  needsQuantity?: boolean;
+  needsClarification?: boolean;
+  clarificationQuestion?: string;
+  error?: string | null;
+}
+
 const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEntryDialogProps) => {
   const [input, setInput] = useState('');
-  const [portion, setPortion] = useState('g');
-  const [portionQty, setPortionQty] = useState('100');
-  const [result, setResult] = useState<{ name: string; grams: number; nutrients: NutrientInfo } | null>(null);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<AIResponse | null>(null);
   const [warning, setWarning] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [error, setError] = useState('');
+  const [mode, setMode] = useState<'text' | 'photo'>('text');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const availableFoods = getAvailableFoods();
-
-  const handleSearch = () => {
+  const analyzeFood = async (text?: string, photo?: string) => {
+    setLoading(true);
     setError('');
-    setWarning('');
     setResult(null);
+    setWarning('');
 
-    const qty = parseInt(portionQty) || 100;
-    const portionData = PORTION_TYPES.find(p => p.label === portion);
-    const grams = portion === 'g' ? qty : qty * (portionData?.factor || 100);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('analyze-food', {
+        body: {
+          text: text || undefined,
+          imageBase64: photo || undefined,
+          mode: photo ? 'photo' : 'text',
+        },
+      });
 
-    // Try direct name first
-    const name = input.trim().toLowerCase();
-    if (!name) {
-      setError('Digite o nome do alimento.');
-      return;
+      if (fnError) {
+        setError('Erro ao analisar alimento. Tente novamente.');
+        return;
+      }
+
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+
+      // Check daily goal warning
+      if (data.foods?.length) {
+        const todayTotals = getTodayTotals();
+        const totalNewCals = data.foods.reduce((s: number, f: AIFood) => s + f.nutrients.calories, 0);
+        const newTotal = todayTotals.calories + totalNewCals;
+        if (newTotal > dailyGoal) {
+          setWarning(`Atenção: vai ultrapassar sua meta (${Math.round(newTotal)} / ${dailyGoal} kcal).`);
+        } else if (newTotal > dailyGoal * 0.9) {
+          setWarning(`Perto da meta (${Math.round(newTotal)} / ${dailyGoal} kcal).`);
+        }
+      }
+
+      setResult(data);
+    } catch {
+      setError('Erro de conexão. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
-
-    const nutrients = lookupFood(name, grams);
-    if (!nutrients) {
-      setError('Alimento não encontrado.');
-      setShowSuggestions(true);
-      return;
-    }
-
-    const todayTotals = getTodayTotals();
-    const newTotal = todayTotals.calories + nutrients.calories;
-    if (newTotal > dailyGoal) {
-      setWarning(`Atenção: vai ultrapassar sua meta (${Math.round(newTotal)} / ${dailyGoal} kcal).`);
-    } else if (newTotal > dailyGoal * 0.9) {
-      setWarning(`Perto da meta (${Math.round(newTotal)} / ${dailyGoal} kcal).`);
-    }
-
-    setResult({ name, grams, nutrients });
-    setShowSuggestions(false);
   };
 
-  const handleAdd = () => {
-    if (!result) return;
+  const handleSubmit = () => {
+    if (mode === 'photo' && imageBase64) {
+      analyzeFood(undefined, imageBase64);
+    } else if (input.trim()) {
+      analyzeFood(input.trim());
+    }
+  };
 
-    const portionLabel = portion === 'g' ? `${result.grams}g` : `${portionQty} ${portion}(s)`;
-
+  const handleAddFood = (food: AIFood) => {
     const entry: FoodEntry = {
       id: Date.now().toString(),
-      name: result.name,
-      quantity: portionLabel,
-      nutrients: result.nutrients,
+      name: food.name,
+      quantity: food.quantity,
+      nutrients: food.nutrients,
       timestamp: Date.now(),
       date: new Date().toISOString().split('T')[0],
     };
 
     saveEntry(entry);
-    
+
     if (!isPremium()) {
       const count = incrementAdCount();
       if (count % 3 === 0) {
@@ -94,13 +117,23 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
     setInput('');
     setResult(null);
     setWarning('');
+    setImagePreview(null);
+    setImageBase64(null);
     onAdded();
     onClose();
   };
 
-  const handleSuggestionClick = (food: string) => {
-    setInput(`100g de ${food}`);
-    setShowSuggestions(false);
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setImagePreview(dataUrl);
+      setImageBase64(dataUrl.split(',')[1]);
+    };
+    reader.readAsDataURL(file);
   };
 
   if (!open) return null;
@@ -119,7 +152,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="bg-card w-full max-w-md rounded-t-2xl p-6 shadow-soft"
+          className="bg-card w-full max-w-md rounded-t-2xl p-6 shadow-soft max-h-[85vh] overflow-y-auto"
           onClick={e => e.stopPropagation()}
         >
           <div className="flex items-center justify-between mb-4">
@@ -129,66 +162,89 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
             </button>
           </div>
 
-          <div className="space-y-3">
-            <Input
-              value={input}
-              onChange={e => { setInput(e.target.value); setError(''); }}
-              placeholder='Ex: "arroz", "frango", "banana"'
-              className="h-11"
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              maxLength={100}
-            />
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                value={portionQty}
-                onChange={e => setPortionQty(e.target.value)}
-                className="h-11 w-20"
-                min={1}
-                max={5000}
-              />
-              <div className="flex gap-1.5 flex-1 overflow-x-auto">
-                {PORTION_TYPES.map(p => (
-                  <button
-                    key={p.label}
-                    onClick={() => setPortion(p.label)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${
-                      portion === p.label
-                        ? 'gradient-primary text-white'
-                        : 'bg-accent text-accent-foreground'
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-              <Button onClick={handleSearch} className="h-11 gradient-primary text-primary-foreground">
-                <Search className="w-4 h-4" />
-              </Button>
-            </div>
+          {/* Mode toggle */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => { setMode('text'); setImagePreview(null); setImageBase64(null); setResult(null); setError(''); }}
+              className={`flex-1 py-2 rounded-xl text-sm font-bold transition-colors ${
+                mode === 'text' ? 'gradient-primary text-white' : 'bg-accent text-accent-foreground'
+              }`}
+            >
+              Texto
+            </button>
+            <button
+              onClick={() => { setMode('photo'); setResult(null); setError(''); }}
+              className={`flex-1 py-2 rounded-xl text-sm font-bold transition-colors ${
+                mode === 'photo' ? 'gradient-primary text-white' : 'bg-accent text-accent-foreground'
+              }`}
+            >
+              Foto
+            </button>
           </div>
 
-          {error && (
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-destructive text-sm mt-2 font-semibold">
-              {error}
-            </motion.p>
+          {mode === 'text' ? (
+            <div className="space-y-3">
+              <Textarea
+                value={input}
+                onChange={e => { setInput(e.target.value); setError(''); }}
+                placeholder='Ex: "2 ovos fritos", "um pedaço de pizza", "200g de arroz com frango"'
+                className="min-h-[80px] resize-none"
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
+                maxLength={500}
+              />
+              <Button
+                onClick={handleSubmit}
+                disabled={loading || !input.trim()}
+                className="w-full h-11 gradient-primary text-primary-foreground font-bold"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                {loading ? 'Analisando...' : 'Analisar'}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handlePhotoSelect}
+              />
+              {imagePreview ? (
+                <div className="relative">
+                  <img src={imagePreview} alt="Foto do alimento" className="w-full h-48 object-cover rounded-xl" />
+                  <button
+                    onClick={() => { setImagePreview(null); setImageBase64(null); }}
+                    className="absolute top-2 right-2 p-1 bg-foreground/50 rounded-full"
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors"
+                >
+                  <Camera className="w-8 h-8 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground font-semibold">Tire ou selecione uma foto</span>
+                </button>
+              )}
+              <Button
+                onClick={handleSubmit}
+                disabled={loading || !imageBase64}
+                className="w-full h-11 gradient-primary text-primary-foreground font-bold"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                {loading ? 'Analisando...' : 'Analisar foto'}
+              </Button>
+            </div>
           )}
 
-          {showSuggestions && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3">
-              <p className="text-xs text-muted-foreground mb-2">Alimentos disponíveis:</p>
-              <div className="flex flex-wrap gap-1.5">
-                {availableFoods.map(food => (
-                  <button
-                    key={food}
-                    onClick={() => handleSuggestionClick(food)}
-                    className="px-2.5 py-1 bg-accent text-accent-foreground text-xs rounded-full font-semibold hover:bg-primary hover:text-primary-foreground transition-colors"
-                  >
-                    {food}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
+          {error && (
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-destructive text-sm mt-3 font-semibold">
+              {error}
+            </motion.p>
           )}
 
           {warning && (
@@ -198,31 +254,58 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
             </motion.div>
           )}
 
-          {result && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 p-4 bg-accent/50 rounded-xl space-y-2"
-            >
-              <h3 className="font-bold text-foreground capitalize">{result.grams}g de {result.name}</h3>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="bg-card rounded-lg p-2 shadow-card">
-                  <p className="text-lg font-bold text-foreground">{result.nutrients.calories}</p>
-                  <p className="text-xs text-muted-foreground">kcal</p>
-                </div>
-                <div className="bg-card rounded-lg p-2 shadow-card">
-                  <p className="text-lg font-bold text-protein">{result.nutrients.protein}g</p>
-                  <p className="text-xs text-muted-foreground">proteína</p>
-                </div>
-                <div className="bg-card rounded-lg p-2 shadow-card">
-                  <p className="text-lg font-bold text-carbs">{result.nutrients.carbs}g</p>
-                  <p className="text-xs text-muted-foreground">carbos</p>
-                </div>
-              </div>
-              <Button onClick={handleAdd} className="w-full h-11 gradient-primary text-primary-foreground font-bold mt-2">
-                Adicionar ✓
-              </Button>
+          {result?.needsClarification && result.clarificationQuestion && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 p-3 bg-accent/50 rounded-xl">
+              <p className="text-sm font-semibold text-foreground">🤖 {result.clarificationQuestion}</p>
             </motion.div>
+          )}
+
+          {result?.needsQuantity && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 p-3 bg-accent/50 rounded-xl">
+              <p className="text-sm font-semibold text-foreground">🤖 Qual foi a quantidade aproximada?</p>
+            </motion.div>
+          )}
+
+          {result?.foods && result.foods.length > 0 && (
+            <div className="mt-4 space-y-3">
+              {result.foods.map((food, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="p-4 bg-accent/50 rounded-xl space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-foreground capitalize">{food.name}</h3>
+                    <span className="text-xs text-muted-foreground">{food.quantity}</span>
+                  </div>
+                  {food.isEstimate && (
+                    <p className="text-xs text-muted-foreground italic">⚠️ Valores estimados</p>
+                  )}
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-card rounded-lg p-2 shadow-card">
+                      <p className="text-lg font-bold text-foreground">{food.nutrients.calories}</p>
+                      <p className="text-xs text-muted-foreground">kcal</p>
+                    </div>
+                    <div className="bg-card rounded-lg p-2 shadow-card">
+                      <p className="text-lg font-bold text-protein">{food.nutrients.protein}g</p>
+                      <p className="text-xs text-muted-foreground">proteína</p>
+                    </div>
+                    <div className="bg-card rounded-lg p-2 shadow-card">
+                      <p className="text-lg font-bold text-carbs">{food.nutrients.carbs}g</p>
+                      <p className="text-xs text-muted-foreground">carbos</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => handleAddFood(food)}
+                    className="w-full h-10 gradient-primary text-primary-foreground font-bold"
+                  >
+                    <Check className="w-4 h-4 mr-1" /> Adicionar
+                  </Button>
+                </motion.div>
+              ))}
+            </div>
           )}
         </motion.div>
       </motion.div>
