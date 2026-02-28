@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Camera, Sparkles } from 'lucide-react';
+import { Settings, Camera, Sparkles, ChevronRight } from 'lucide-react';
 import CircleProgress from '@/components/CircleProgress';
 import FoodEntryDialog from '@/components/FoodEntryDialog';
 import FoodDetailSheet from '@/components/FoodDetailSheet';
@@ -11,7 +11,7 @@ import { SteakIcon, OilDropIcon, SugarCubesIcon } from '@/components/MacroIcons'
 import { getProfile, getTodayTotals, getTodayEntries } from '@/lib/storage';
 import { calculateDailyMacroGoals } from '@/lib/calories';
 import { useNavigate } from 'react-router-dom';
-import rabbitLogo from '@/assets/rabbit-logo.png';
+import { MASCOT_LOGO } from '@/lib/mascot';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ const Dashboard = () => {
           {/* Top bar */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <img src={rabbitLogo} alt="Logo" className="w-10 h-10 rounded-xl" />
+              <img src={MASCOT_LOGO} alt="Logo" className="w-10 h-10 rounded-xl" />
               <div>
                 <p className="text-xs text-white/70 font-semibold">Olá,</p>
                 <h1 className="text-lg font-extrabold text-white">{profile.name}</h1>
@@ -107,7 +107,13 @@ const Dashboard = () => {
           transition={{ delay: 0.1 }}
           className="bg-card rounded-[1.75rem] shadow-elevated border border-border p-5"
         >
-          <h2 className="text-base font-bold text-muted-foreground mb-4">Macronutrientes</h2>
+          <button
+            onClick={() => setShowDetail(true)}
+            className="flex items-center justify-between w-full mb-4"
+          >
+            <h2 className="text-base font-bold text-muted-foreground">Macronutrientes</h2>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
           <div className="flex justify-around">
             <CircleProgress
               value={totals.protein}

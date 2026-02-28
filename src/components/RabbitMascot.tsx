@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import rabbitImg from '@/assets/rabbit-mascot.png';
+import { MASCOT_FULL } from '@/lib/mascot';
 
 interface RabbitMascotProps {
   message?: string;
@@ -20,7 +20,7 @@ const RabbitMascot = ({ message, size = 80 }: RabbitMascotProps) => {
         </motion.div>
       )}
       <motion.img
-        src={rabbitImg}
+        src={MASCOT_FULL}
         alt="Mascote coelho"
         style={{ width: size, height: size }}
         className="object-contain animate-bounce-gentle"
