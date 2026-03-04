@@ -1,19 +1,39 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Check, Zap } from 'lucide-react';
+import { ArrowLeft, Check, Zap, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { setPremium } from '@/lib/storage';
 import RabbitMascot from '@/components/RabbitMascot';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Premium = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
+  const [loading, setLoading] = useState(false);
 
-  const handleActivate = () => {
-    setPremium(true);
-    navigate('/');
+  const handleActivate = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout');
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('Não foi possível iniciar o checkout');
+      }
+    } catch (err: any) {
+      toast({
+        title: 'Erro ao iniciar pagamento',
+        description: err.message || 'Tente novamente mais tarde.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const features = [
@@ -132,11 +152,12 @@ const Premium = () => {
 
           <Button
             onClick={handleActivate}
+            disabled={loading}
             className="w-full h-12 gradient-primary text-primary-foreground font-bold text-base"
           >
-            Ativar Premium (Demo)
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Assinar Premium'}
           </Button>
-          <p className="text-xs text-muted-foreground mt-2">Versão demonstrativa gratuita</p>
+          <p className="text-xs text-muted-foreground mt-2">Pagamento seguro via Stripe</p>
         </motion.div>
       </div>
     </div>
