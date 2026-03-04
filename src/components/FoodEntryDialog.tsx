@@ -127,7 +127,24 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Selecione um arquivo de imagem válido.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const MAX_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setError(`Imagem muito grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo: 5MB.`);
+      return;
+    }
+
+    setError('');
     const reader = new FileReader();
+    reader.onerror = () => {
+      setError('Erro ao ler a imagem. Tente novamente.');
+    };
     reader.onload = () => {
       const dataUrl = reader.result as string;
       setImagePreview(dataUrl);
