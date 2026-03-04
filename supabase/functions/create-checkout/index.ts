@@ -21,7 +21,7 @@ serve(async (req) => {
     const { plan } = await req.json().catch(() => ({ plan: "mensal" }));
 
     const plans: Record<string, { price: string; mode: "payment" | "subscription" }> = {
-      mensal: { price: "price_1T7MwuRjaZ0FbxXhG6NbSa6r", mode: "payment" },
+      mensal: { price: "price_1T7MwuRjaZ0FbxXhG6NbSa6r", mode: "subscription" },
       anual: { price: "price_1T7NgZRjaZ0FbxXhuuej6tpT", mode: "subscription" },
     };
 
