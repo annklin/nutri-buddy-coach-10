@@ -8,7 +8,7 @@ import SettingsDialog from '@/components/SettingsDialog';
 import AdDialog from '@/components/AdDialog';
 import InfoBalloon from '@/components/InfoBalloon';
 import { SteakIcon, OilDropIcon, SugarCubesIcon } from '@/components/MacroIcons';
-import { getProfile, getTodayTotals, getTodayEntries } from '@/lib/storage';
+import { getProfile, getTodayTotals, getTodayEntries, deleteEntry } from '@/lib/storage';
 import { calculateDailyMacroGoals } from '@/lib/calories';
 import { useNavigate } from 'react-router-dom';
 import { MASCOT_LOGO } from '@/lib/mascot';
