@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Camera, Sparkles, ChevronRight } from 'lucide-react';
+import { Settings, Camera, Sparkles, ChevronRight, Trash2 } from 'lucide-react';
 import CircleProgress from '@/components/CircleProgress';
 import FoodEntryDialog from '@/components/FoodEntryDialog';
 import FoodDetailSheet from '@/components/FoodDetailSheet';
