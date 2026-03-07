@@ -41,8 +41,8 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Green Header - tall, with calorie info */}
-      <div className="hero-header px-5 pt-10 pb-36 relative overflow-hidden">
+      {/* Green Header */}
+      <div className="hero-header px-5 pt-8 pb-28 relative overflow-hidden">
         {/* Decorative circles */}
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
         <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/10" />
