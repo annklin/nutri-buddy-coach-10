@@ -40,7 +40,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-[100dvh] bg-background pb-20">
       {/* Green Header */}
       <div className="hero-header px-5 pt-8 pb-28 relative overflow-hidden">
         {/* Decorative circles */}
@@ -75,7 +75,7 @@ const Dashboard = () => {
       </div>
 
       {/* Overlapping progress card */}
-      <div className="px-5 -mt-20 relative z-10">
+      <div className="px-5 -mt-16 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,7 +106,7 @@ const Dashboard = () => {
       </div>
 
       {/* Macronutrientes card */}
-      <div className="px-5 mt-5">
+      <div className="px-5 mt-4">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -165,7 +165,7 @@ const Dashboard = () => {
       </div>
 
       {/* Side-by-side action buttons */}
-      <div className="px-5 mt-5 flex gap-3">
+      <div className="px-5 mt-4 flex gap-3">
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={() => { setEntryMode('text'); setShowFoodEntry(true); }}
@@ -191,7 +191,7 @@ const Dashboard = () => {
       </div>
 
       {/* Today's food list */}
-      <div className="px-5 mt-6">
+      <div className="px-5 mt-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-extrabold text-foreground">Hoje</h2>
           <button onClick={() => navigate('/history')} className="text-xs text-muted-foreground font-semibold hover:text-foreground transition-colors">
