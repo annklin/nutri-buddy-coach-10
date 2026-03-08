@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { initAdMob, showInterstitialAd } from '@/lib/admob';
 import { Settings, Camera, Sparkles, ChevronRight, Trash2 } from 'lucide-react';
 import CircleProgress from '@/components/CircleProgress';
 import FoodEntryDialog from '@/components/FoodEntryDialog';
@@ -26,6 +27,13 @@ const Dashboard = () => {
   const [showAd, setShowAd] = useState(false);
   const [balloon, setBalloon] = useState<string | null>(null);
   const [entryMode, setEntryMode] = useState<'text' | 'photo'>('text');
+
+  useEffect(() => { initAdMob(); }, []);
+
+  const handleShowAd = useCallback(async () => {
+    const shown = await showInterstitialAd();
+    if (!shown) setShowAd(true); // fallback to web AdDialog
+  }, []);
 
   const totals = getTodayTotals();
   const goals = calculateDailyMacroGoals(profile.dailyCalorieGoal);
@@ -246,7 +254,7 @@ const Dashboard = () => {
       )}
 
       {/* Dialogs */}
-      <FoodEntryDialog open={showFoodEntry} onClose={() => setShowFoodEntry(false)} onAdded={refresh} dailyGoal={profile.dailyCalorieGoal} onShowAd={() => setShowAd(true)} />
+      <FoodEntryDialog open={showFoodEntry} onClose={() => setShowFoodEntry(false)} onAdded={refresh} dailyGoal={profile.dailyCalorieGoal} onShowAd={handleShowAd} />
       <FoodDetailSheet open={showDetail} onClose={() => setShowDetail(false)} dailyGoal={profile.dailyCalorieGoal} onUpdate={refresh} />
       <SettingsDialog open={showSettings} onClose={() => setShowSettings(false)} onUpdate={refresh} />
       <AdDialog open={showAd} onClose={() => setShowAd(false)} onPremium={() => { setShowAd(false); navigate('/premium'); }} />
