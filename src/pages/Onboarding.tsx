@@ -7,12 +7,14 @@ import RabbitMascot from '@/components/RabbitMascot';
 import { calculateDailyCalories } from '@/lib/calories';
 import { saveProfile } from '@/lib/storage';
 import { UserProfile } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface OnboardingProps {
   onComplete: () => void;
 }
 
 const Onboarding = ({ onComplete }: OnboardingProps) => {
+  const { t } = useLanguage();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
@@ -21,9 +23,9 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   const [weight, setWeight] = useState('');
 
   const mascotMessages = [
-    'Olá! Qual é o seu nome? 🐰',
-    `Prazer, ${name}! Me conta um pouco sobre você.`,
-    'Quase lá! Vou calcular sua meta diária!',
+    t('onb_hello'),
+    t('onb_nice', { name }),
+    t('onb_almost'),
   ];
 
   const canProceed = () => {
@@ -64,11 +66,11 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         >
           {step === 0 && (
             <div className="space-y-3">
-              <Label className="text-base font-bold">Seu nome</Label>
+              <Label className="text-base font-bold">{t('onb_yourName')}</Label>
               <Input
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder="Digite seu nome..."
+                placeholder={t('onb_typeName')}
                 className="text-lg h-12"
                 maxLength={50}
               />
@@ -78,26 +80,26 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <Label className="text-base font-bold">Gênero</Label>
+                <Label className="text-base font-bold">{t('onb_gender')}</Label>
                 <div className="flex gap-3 mt-2">
                   <Button
                     variant={gender === 'male' ? 'default' : 'outline'}
                     className="flex-1 h-12 text-base"
                     onClick={() => setGender('male')}
                   >
-                    Masculino
+                    {t('onb_male')}
                   </Button>
                   <Button
                     variant={gender === 'female' ? 'default' : 'outline'}
                     className="flex-1 h-12 text-base"
                     onClick={() => setGender('female')}
                   >
-                    Feminino
+                    {t('onb_female')}
                   </Button>
                 </div>
               </div>
               <div>
-                <Label className="text-base font-bold">Idade</Label>
+                <Label className="text-base font-bold">{t('onb_age')}</Label>
                 <Input
                   type="number"
                   value={age}
@@ -114,7 +116,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
           {step === 2 && (
             <div className="space-y-4">
               <div>
-                <Label className="text-base font-bold">Altura (cm)</Label>
+                <Label className="text-base font-bold">{t('onb_height')}</Label>
                 <Input
                   type="number"
                   value={height}
@@ -126,7 +128,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 />
               </div>
               <div>
-                <Label className="text-base font-bold">Peso (kg)</Label>
+                <Label className="text-base font-bold">{t('onb_weight')}</Label>
                 <Input
                   type="number"
                   value={weight}
@@ -145,7 +147,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       <div className="w-full max-w-sm mt-8 flex gap-3">
         {step > 0 && (
           <Button variant="outline" className="flex-1 h-12" onClick={() => setStep(s => s - 1)}>
-            Voltar
+            {t('onb_back')}
           </Button>
         )}
         <Button
@@ -156,11 +158,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             else handleFinish();
           }}
         >
-          {step < 2 ? 'Continuar' : 'Começar! 🎉'}
+          {step < 2 ? t('onb_continue') : t('onb_start')}
         </Button>
       </div>
 
-      {/* Step indicator */}
       <div className="flex gap-2 mt-6">
         {[0, 1, 2].map(i => (
           <div

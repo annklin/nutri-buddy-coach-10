@@ -14,9 +14,11 @@ import { calculateDailyMacroGoals } from '@/lib/calories';
 import { useNavigate } from 'react-router-dom';
 import { MASCOT_LOGO } from '@/lib/mascot';
 import AdBanner from '@/components/AdBanner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const profile = getProfile()!;
   const [, setRefresh] = useState(0);
   const refresh = useCallback(() => setRefresh(r => r + 1), []);
@@ -32,7 +34,7 @@ const Dashboard = () => {
 
   const handleShowAd = useCallback(async () => {
     const shown = await showInterstitialAd();
-    if (!shown) setShowAd(true); // fallback to web AdDialog
+    if (!shown) setShowAd(true);
   }, []);
 
   const totals = getTodayTotals();
@@ -42,26 +44,24 @@ const Dashboard = () => {
   const percentage = Math.min(Math.round((totals.calories / profile.dailyCalorieGoal) * 100), 100);
 
   const balloonData: Record<string, { title: string; description: string; color: string }> = {
-    protein: { title: 'Proteína', description: 'Construção muscular e recuperação.', color: 'hsl(var(--protein))' },
-    fat: { title: 'Gordura', description: 'Energia e absorção de vitaminas.', color: 'hsl(var(--fat))' },
-    sugar: { title: 'Açúcar', description: 'Modere o consumo de açúcares simples.', color: 'hsl(var(--sugar))' },
+    protein: { title: t('dash_protein'), description: t('dash_proteinDesc'), color: 'hsl(var(--protein))' },
+    fat: { title: t('dash_fat'), description: t('dash_fatDesc'), color: 'hsl(var(--fat))' },
+    sugar: { title: t('dash_sugar'), description: t('dash_sugarDesc'), color: 'hsl(var(--sugar))' },
   };
 
   return (
     <div className="min-h-[100dvh] bg-background pb-20">
       {/* Green Header */}
       <div className="hero-header px-5 pt-8 pb-28 relative overflow-hidden">
-        {/* Decorative circles */}
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
         <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/10" />
 
         <div className="relative z-10">
-          {/* Top bar */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <img src={MASCOT_LOGO} alt="Logo" className="w-10 h-10 rounded-xl" />
               <div>
-                <p className="text-xs text-white/70 font-semibold">Olá,</p>
+                <p className="text-xs text-white/70 font-semibold">{t('dash_hello')}</p>
                 <h1 className="text-lg font-extrabold text-white">{profile.name}</h1>
               </div>
             </div>
@@ -73,11 +73,10 @@ const Dashboard = () => {
             </button>
           </div>
 
-          {/* Calorie info centered in green */}
           <div className="text-center">
-            <p className="text-sm text-white/70 font-semibold">Calorias de hoje</p>
+            <p className="text-sm text-white/70 font-semibold">{t('dash_todayCalories')}</p>
             <p className="text-5xl font-extrabold text-white mt-1">{totals.calories}</p>
-            <p className="text-sm text-white/70 font-semibold mt-1">de {profile.dailyCalorieGoal} kcal</p>
+            <p className="text-sm text-white/70 font-semibold mt-1">{t('dash_of', { goal: profile.dailyCalorieGoal })}</p>
           </div>
         </div>
       </div>
@@ -98,17 +97,16 @@ const Dashboard = () => {
               color="hsl(var(--primary))"
               trackColor="hsl(var(--muted))"
               label=""
-              unit="da meta"
+              unit={t('dash_ofGoal')}
               displayText={`${percentage}%`}
             />
           </div>
           <p className="text-center text-muted-foreground text-sm font-bold mt-3">
-            {remaining <= 0 ? 'Meta atingida! 🎉' : `Restam ${remaining} kcal`}
+            {remaining <= 0 ? t('dash_goalReached') : t('dash_remaining', { remaining })}
           </p>
         </motion.div>
       </div>
 
-      {/* Ad banner - only for free users */}
       <div className="px-5 mt-4">
         <AdBanner format="horizontal" className="rounded-2xl overflow-hidden" />
       </div>
@@ -125,7 +123,7 @@ const Dashboard = () => {
             onClick={() => setShowDetail(true)}
             className="flex items-center justify-between w-full mb-4"
           >
-            <h2 className="text-base font-bold text-muted-foreground">Macronutrientes</h2>
+            <h2 className="text-base font-bold text-muted-foreground">{t('dash_macros')}</h2>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
           <div className="flex justify-around">
@@ -140,7 +138,7 @@ const Dashboard = () => {
               unit=""
               onClick={() => setBalloon('protein')}
               macroLabel={`${Math.round(totals.protein)}g`}
-              macroGoal={`de ${goals.protein}g`}
+              macroGoal={t('dash_of_g', { goal: goals.protein })}
             />
             <CircleProgress
               value={totals.fat}
@@ -153,7 +151,7 @@ const Dashboard = () => {
               unit=""
               onClick={() => setBalloon('fat')}
               macroLabel={`${Math.round(totals.fat)}g`}
-              macroGoal={`de ${goals.fat}g`}
+              macroGoal={t('dash_of_g', { goal: goals.fat })}
             />
             <CircleProgress
               value={totals.sugar}
@@ -166,7 +164,7 @@ const Dashboard = () => {
               unit=""
               onClick={() => setBalloon('sugar')}
               macroLabel={`${Math.round(totals.sugar)}g`}
-              macroGoal={`de ${goals.sugar}g`}
+              macroGoal={t('dash_of_g', { goal: goals.sugar })}
             />
           </div>
         </motion.div>
@@ -182,8 +180,8 @@ const Dashboard = () => {
           <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center mb-1">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
-          <p className="text-sm font-extrabold text-foreground">Adicionar por texto</p>
-          <p className="text-xs text-muted-foreground">Descreva o alimento</p>
+          <p className="text-sm font-extrabold text-foreground">{t('dash_addText')}</p>
+          <p className="text-xs text-muted-foreground">{t('dash_describeFood')}</p>
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.97 }}
@@ -193,23 +191,23 @@ const Dashboard = () => {
           <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center mb-1">
             <Camera className="w-5 h-5 text-white" />
           </div>
-          <p className="text-sm font-extrabold text-foreground">Adicionar por foto</p>
-          <p className="text-xs text-muted-foreground">Tire uma foto</p>
+          <p className="text-sm font-extrabold text-foreground">{t('dash_addPhoto')}</p>
+          <p className="text-xs text-muted-foreground">{t('dash_takePhoto')}</p>
         </motion.button>
       </div>
 
       {/* Today's food list */}
       <div className="px-5 mt-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-extrabold text-foreground">Hoje</h2>
+          <h2 className="text-base font-extrabold text-foreground">{t('dash_today')}</h2>
           <button onClick={() => navigate('/history')} className="text-xs text-muted-foreground font-semibold hover:text-foreground transition-colors">
-            Ver histórico →
+            {t('dash_viewHistory')}
           </button>
         </div>
         {todayEntries.length === 0 ? (
           <div className="bg-card rounded-[1.5rem] shadow-elevated border border-border p-8 text-center">
             <p className="text-3xl mb-2">🥗</p>
-            <p className="text-sm text-muted-foreground font-semibold">Nenhum alimento registrado.</p>
+            <p className="text-sm text-muted-foreground font-semibold">{t('dash_noFood')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -232,7 +230,7 @@ const Dashboard = () => {
                 <button
                   onClick={() => { deleteEntry(entry.id); refresh(); }}
                   className="p-2 rounded-xl hover:bg-destructive/10 transition-colors flex-shrink-0"
-                  aria-label="Remover alimento"
+                  aria-label={t('dash_removeFood')}
                 >
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </button>
@@ -242,7 +240,6 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Info balloons */}
       {balloon && balloonData[balloon] && (
         <InfoBalloon
           visible={true}
@@ -253,7 +250,6 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Dialogs */}
       <FoodEntryDialog open={showFoodEntry} onClose={() => setShowFoodEntry(false)} onAdded={refresh} dailyGoal={profile.dailyCalorieGoal} onShowAd={handleShowAd} />
       <FoodDetailSheet open={showDetail} onClose={() => setShowDetail(false)} dailyGoal={profile.dailyCalorieGoal} onUpdate={refresh} />
       <SettingsDialog open={showSettings} onClose={() => setShowSettings(false)} onUpdate={refresh} />
