@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { saveEntry, getTodayTotals, incrementAdCount, isPremium } from '@/lib/storage';
 import { FoodEntry, NutrientInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FoodEntryDialogProps {
   open: boolean;
@@ -32,6 +33,7 @@ interface AIResponse {
 }
 
 const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEntryDialogProps) => {
+  const { t } = useLanguage();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AIResponse | null>(null);
@@ -58,7 +60,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
       });
 
       if (fnError) {
-        setError('Erro ao analisar alimento. Tente novamente.');
+        setError(t('food_analyzeError'));
         return;
       }
 
@@ -67,21 +69,20 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
         return;
       }
 
-      // Check daily goal warning
       if (data.foods?.length) {
         const todayTotals = getTodayTotals();
         const totalNewCals = data.foods.reduce((s: number, f: AIFood) => s + f.nutrients.calories, 0);
         const newTotal = todayTotals.calories + totalNewCals;
         if (newTotal > dailyGoal) {
-          setWarning(`Atenção: vai ultrapassar sua meta (${Math.round(newTotal)} / ${dailyGoal} kcal).`);
+          setWarning(t('food_overGoal', { total: Math.round(newTotal), goal: dailyGoal }));
         } else if (newTotal > dailyGoal * 0.9) {
-          setWarning(`Perto da meta (${Math.round(newTotal)} / ${dailyGoal} kcal).`);
+          setWarning(t('food_nearGoal', { total: Math.round(newTotal), goal: dailyGoal }));
         }
       }
 
       setResult(data);
     } catch {
-      setError('Erro de conexão. Tente novamente.');
+      setError(t('food_connectionError'));
     } finally {
       setLoading(false);
     }
@@ -127,23 +128,21 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
-      setError('Selecione um arquivo de imagem válido.');
+      setError(t('food_invalidImage'));
       return;
     }
 
-    // Validate file size (max 5MB)
     const MAX_SIZE = 5 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      setError(`Imagem muito grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo: 5MB.`);
+      setError(t('food_tooLarge', { size: (file.size / 1024 / 1024).toFixed(1) }));
       return;
     }
 
     setError('');
     const reader = new FileReader();
     reader.onerror = () => {
-      setError('Erro ao ler a imagem. Tente novamente.');
+      setError(t('food_readError'));
     };
     reader.onload = () => {
       const dataUrl = reader.result as string;
@@ -173,13 +172,12 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
           onClick={e => e.stopPropagation()}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-foreground">Adicionar Alimento</h2>
+            <h2 className="text-lg font-bold text-foreground">{t('food_addFood')}</h2>
             <button onClick={onClose} className="p-1 rounded-full hover:bg-muted transition-colors">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
-          {/* Mode toggle */}
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => { setMode('text'); setImagePreview(null); setImageBase64(null); setResult(null); setError(''); }}
@@ -187,7 +185,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
                 mode === 'text' ? 'gradient-primary text-white' : 'bg-accent text-accent-foreground'
               }`}
             >
-              Texto
+              {t('food_text')}
             </button>
             <button
               onClick={() => { setMode('photo'); setResult(null); setError(''); }}
@@ -195,7 +193,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
                 mode === 'photo' ? 'gradient-primary text-white' : 'bg-accent text-accent-foreground'
               }`}
             >
-              Foto
+              {t('food_photo')}
             </button>
           </div>
 
@@ -204,7 +202,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
               <Textarea
                 value={input}
                 onChange={e => { setInput(e.target.value); setError(''); }}
-                placeholder='Ex: "2 ovos fritos", "um pedaço de pizza", "200g de arroz com frango"'
+                placeholder={t('food_placeholder')}
                 className="min-h-[80px] resize-none"
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
                 maxLength={500}
@@ -215,7 +213,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
                 className="w-full h-11 gradient-primary text-primary-foreground font-bold"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-                {loading ? 'Analisando...' : 'Analisar'}
+                {loading ? t('food_analyzing') : t('food_analyze')}
               </Button>
             </div>
           ) : (
@@ -229,7 +227,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
               />
               {imagePreview ? (
                 <div className="relative">
-                  <img src={imagePreview} alt="Foto do alimento" className="w-full h-48 object-cover rounded-xl" />
+                  <img src={imagePreview} alt="" className="w-full h-48 object-cover rounded-xl" />
                   <button
                     onClick={() => { setImagePreview(null); setImageBase64(null); }}
                     className="absolute top-2 right-2 p-1 bg-foreground/50 rounded-full"
@@ -243,7 +241,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
                   className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors"
                 >
                   <Camera className="w-8 h-8 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground font-semibold">Tire ou selecione uma foto</span>
+                  <span className="text-sm text-muted-foreground font-semibold">{t('food_takeOrSelect')}</span>
                 </button>
               )}
               <Button
@@ -252,7 +250,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
                 className="w-full h-11 gradient-primary text-primary-foreground font-bold"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-                {loading ? 'Analisando...' : 'Analisar foto'}
+                {loading ? t('food_analyzing') : t('food_analyzePhoto')}
               </Button>
             </div>
           )}
@@ -278,7 +276,7 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
 
           {result?.needsQuantity && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 p-3 bg-accent/50 rounded-xl">
-              <p className="text-sm font-semibold text-foreground">🤖 Qual foi a quantidade aproximada?</p>
+              <p className="text-sm font-semibold text-foreground">{t('food_howMuch')}</p>
             </motion.div>
           )}
 
@@ -297,27 +295,27 @@ const FoodEntryDialog = ({ open, onClose, onAdded, dailyGoal, onShowAd }: FoodEn
                     <span className="text-xs text-muted-foreground">{food.quantity}</span>
                   </div>
                   {food.isEstimate && (
-                    <p className="text-xs text-muted-foreground italic">⚠️ Valores estimados</p>
+                    <p className="text-xs text-muted-foreground italic">{t('food_estimated')}</p>
                   )}
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-card rounded-lg p-2 shadow-card">
                       <p className="text-lg font-bold text-foreground">{food.nutrients.calories}</p>
-                      <p className="text-xs text-muted-foreground">kcal</p>
+                      <p className="text-xs text-muted-foreground">{t('food_kcal')}</p>
                     </div>
                     <div className="bg-card rounded-lg p-2 shadow-card">
                       <p className="text-lg font-bold text-protein">{food.nutrients.protein}g</p>
-                      <p className="text-xs text-muted-foreground">proteína</p>
+                      <p className="text-xs text-muted-foreground">{t('food_protein')}</p>
                     </div>
                     <div className="bg-card rounded-lg p-2 shadow-card">
                       <p className="text-lg font-bold text-carbs">{food.nutrients.carbs}g</p>
-                      <p className="text-xs text-muted-foreground">carbos</p>
+                      <p className="text-xs text-muted-foreground">{t('food_carbs')}</p>
                     </div>
                   </div>
                   <Button
                     onClick={() => handleAddFood(food)}
                     className="w-full h-10 gradient-primary text-primary-foreground font-bold"
                   >
-                    <Check className="w-4 h-4 mr-1" /> Adicionar
+                    <Check className="w-4 h-4 mr-1" /> {t('food_add')}
                   </Button>
                 </motion.div>
               ))}

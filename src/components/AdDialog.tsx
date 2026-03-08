@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { resetAdCount } from '@/lib/storage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AdDialogProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface AdDialogProps {
 }
 
 const AdDialog = ({ open, onClose, onPremium }: AdDialogProps) => {
+  const { t } = useLanguage();
   const [watching, setWatching] = useState(false);
   const [countdown, setCountdown] = useState(5);
   const [canClose, setCanClose] = useState(false);
@@ -56,7 +58,6 @@ const AdDialog = ({ open, onClose, onPremium }: AdDialogProps) => {
           animate={{ scale: 1, opacity: 1 }}
           className="bg-card w-full max-w-sm rounded-2xl p-6 shadow-soft relative"
         >
-          {/* Small X at top */}
           <button
             onClick={handleClose}
             className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted transition-colors"
@@ -69,26 +70,26 @@ const AdDialog = ({ open, onClose, onPremium }: AdDialogProps) => {
               <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <span className="text-2xl font-bold text-primary">{countdown}</span>
               </div>
-              <p className="text-sm text-muted-foreground">Aguarde o anúncio terminar...</p>
+              <p className="text-sm text-muted-foreground">{t('ad_waiting')}</p>
             </div>
           ) : canClose ? (
             <div className="text-center py-6">
-              <p className="text-lg font-bold text-foreground mb-2">✅ Obrigado!</p>
-              <p className="text-sm text-muted-foreground mb-4">Continue registrando seus alimentos.</p>
+              <p className="text-lg font-bold text-foreground mb-2">{t('ad_thanks')}</p>
+              <p className="text-sm text-muted-foreground mb-4">{t('ad_keepLogging')}</p>
               <Button onClick={handleClose} className="gradient-primary text-primary-foreground font-bold">
-                Continuar
+                {t('ad_continue')}
               </Button>
             </div>
           ) : (
             <div className="text-center pt-4 space-y-3">
-              <p className="text-lg font-bold text-foreground">📢 Pausa rápida</p>
-              <p className="text-sm text-muted-foreground mb-4">Escolha uma opção para continuar:</p>
+              <p className="text-lg font-bold text-foreground">{t('ad_pause')}</p>
+              <p className="text-sm text-muted-foreground mb-4">{t('ad_chooseOption')}</p>
               <div className="space-y-2.5">
                 <Button onClick={onPremium} variant="outline" className="w-full h-11 font-bold border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                  ⭐ Remover anúncios (Premium)
+                  {t('ad_removePremium')}
                 </Button>
                 <Button onClick={handleWatch} className="w-full h-11 gradient-primary text-primary-foreground font-bold">
-                  ▶️ Assistir anúncio completo
+                  {t('ad_watchAd')}
                 </Button>
               </div>
             </div>

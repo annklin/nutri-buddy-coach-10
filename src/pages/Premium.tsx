@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Premium = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [loading, setLoading] = useState(false);
 
@@ -23,12 +25,12 @@ const Premium = () => {
       if (data?.url) {
         window.location.href = data.url;
       } else {
-        throw new Error('Não foi possível iniciar o checkout');
+        throw new Error('Checkout error');
       }
     } catch (err: any) {
       toast({
-        title: 'Erro ao iniciar pagamento',
-        description: err.message || 'Tente novamente mais tarde.',
+        title: t('prem_paymentError'),
+        description: err.message || t('prem_tryAgain'),
         variant: 'destructive',
       });
     } finally {
@@ -37,25 +39,25 @@ const Premium = () => {
   };
 
   const features = [
-    'Sem anúncios',
-    'Histórico completo de 30 dias',
-    'Detalhes nutricionais avançados',
+    t('prem_noAds'),
+    t('prem_fullHistory'),
+    t('prem_advancedNutrients'),
   ];
 
   const plans = {
     monthly: {
-      label: 'Mensal',
+      label: t('prem_monthly'),
       price: 'R$ 19,90',
-      period: '/mês',
+      period: t('prem_perMonth'),
       totalYear: 'R$ 238,80/ano',
     },
     annual: {
-      label: 'Anual',
+      label: t('prem_annual'),
       price: 'R$ 2,49',
-      period: '/mês',
-      subtitle: '12x de R$ 2,49 ou R$ 29,90 à vista',
+      period: t('prem_perMonth'),
+      subtitle: t('prem_annualSubtitle'),
       totalYear: 'R$ 29,90/ano',
-      savings: 'Economia de R$ 208,90 por ano',
+      savings: t('prem_annualSavings'),
     },
   };
 
@@ -65,7 +67,7 @@ const Premium = () => {
         <button onClick={() => navigate(-1)} className="p-2 rounded-xl bg-accent hover:bg-accent/80 transition-colors">
           <ArrowLeft className="w-5 h-5 text-accent-foreground" />
         </button>
-        <h1 className="text-xl font-bold text-foreground">Premium ⭐</h1>
+        <h1 className="text-xl font-bold text-foreground">{t('prem_title')}</h1>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center text-center">
@@ -83,10 +85,9 @@ const Premium = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mt-8 w-full max-w-sm"
         >
-          {/* Features */}
           <div className="bg-card rounded-2xl p-6 shadow-card border border-primary/20 mb-4">
-            <h2 className="text-2xl font-black text-foreground mb-1">Premium</h2>
-            <p className="text-muted-foreground text-sm mb-5">Aproveite ao máximo seu controle de calorias</p>
+            <h2 className="text-2xl font-black text-foreground mb-1">{t('prem_name')}</h2>
+            <p className="text-muted-foreground text-sm mb-5">{t('prem_subtitle')}</p>
             <div className="space-y-3 text-left">
               {features.map(f => (
                 <div key={f} className="flex items-center gap-3">
@@ -99,9 +100,7 @@ const Premium = () => {
             </div>
           </div>
 
-          {/* Plan selector */}
           <div className="grid grid-cols-2 gap-3 mb-4">
-            {/* Monthly */}
             <button
               onClick={() => setSelectedPlan('monthly')}
               className={`relative p-4 rounded-2xl border-2 text-left transition-all ${
@@ -115,7 +114,6 @@ const Premium = () => {
               <p className="text-xs text-muted-foreground">{plans.monthly.period}</p>
             </button>
 
-            {/* Annual */}
             <button
               onClick={() => setSelectedPlan('annual')}
               className={`relative p-4 rounded-2xl border-2 text-left transition-all ${
@@ -133,7 +131,6 @@ const Premium = () => {
             </button>
           </div>
 
-          {/* Plan details */}
           <motion.div
             key={selectedPlan}
             initial={{ opacity: 0, y: 5 }}
@@ -143,7 +140,7 @@ const Premium = () => {
             {selectedPlan === 'annual' ? (
               <div className="space-y-1.5 text-center">
                 <p className="text-sm font-bold text-foreground">{plans.annual.subtitle}</p>
-                <p className="text-xs text-muted-foreground line-through">Mensal: {plans.monthly.totalYear}</p>
+                <p className="text-xs text-muted-foreground line-through">{t('prem_monthly')}: {plans.monthly.totalYear}</p>
                 <p className="text-xs font-bold text-primary flex items-center justify-center gap-1">
                   <Zap className="w-3.5 h-3.5" />
                   {plans.annual.savings}
@@ -151,8 +148,8 @@ const Premium = () => {
               </div>
             ) : (
               <div className="text-center">
-                <p className="text-sm font-bold text-foreground">{plans.monthly.price} cobrado mensalmente</p>
-                <p className="text-xs text-muted-foreground mt-1">Total: {plans.monthly.totalYear}</p>
+                <p className="text-sm font-bold text-foreground">{t('prem_monthlyBilled', { price: plans.monthly.price })}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('prem_total', { total: plans.monthly.totalYear })}</p>
               </div>
             )}
           </motion.div>
@@ -162,9 +159,9 @@ const Premium = () => {
             disabled={loading}
             className="w-full h-12 gradient-primary text-primary-foreground font-bold text-base"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Assinar Premium'}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('prem_subscribe')}
           </Button>
-          <p className="text-xs text-muted-foreground mt-2">Pagamento seguro via Stripe</p>
+          <p className="text-xs text-muted-foreground mt-2">{t('prem_securePayment')}</p>
         </motion.div>
       </div>
     </div>

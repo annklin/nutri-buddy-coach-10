@@ -4,6 +4,7 @@ import { FoodEntry, NutrientInfo } from '@/types';
 import { calculateDailyMacroGoals } from '@/lib/calories';
 import { deleteEntry, getTodayEntries, getTodayTotals, isPremium } from '@/lib/storage';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FoodDetailSheetProps {
   open: boolean;
@@ -12,8 +13,9 @@ interface FoodDetailSheetProps {
   onUpdate: () => void;
 }
 
-const NutrientRow = ({ label, value, goal, unit, color }: {
+const NutrientRow = ({ label, value, goal, unit, color, t }: {
   label: string; value: number; goal: number; unit: string; color: string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) => {
   const percentage = Math.min((value / goal) * 100, 100);
   const excess = value > goal ? value - goal : 0;
@@ -38,8 +40,8 @@ const NutrientRow = ({ label, value, goal, unit, color }: {
       </div>
       <p className="text-xs text-muted-foreground">
         {excess > 0
-          ? `⚠️ Excesso de ${Math.round(excess * 10) / 10}${unit}`
-          : `Faltam ${Math.round(remaining * 10) / 10}${unit}`
+          ? t('detail_excess', { amount: Math.round(excess * 10) / 10, unit })
+          : t('detail_remaining', { amount: Math.round(remaining * 10) / 10, unit })
         }
       </p>
     </div>
@@ -48,6 +50,7 @@ const NutrientRow = ({ label, value, goal, unit, color }: {
 
 const FoodDetailSheet = ({ open, onClose, dailyGoal, onUpdate }: FoodDetailSheetProps) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const entries = getTodayEntries();
   const totals = getTodayTotals();
   const goals = calculateDailyMacroGoals(dailyGoal);
@@ -78,25 +81,24 @@ const FoodDetailSheet = ({ open, onClose, dailyGoal, onUpdate }: FoodDetailSheet
           onClick={e => e.stopPropagation()}
         >
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-bold text-foreground">Detalhes Nutricionais</h2>
+            <h2 className="text-lg font-bold text-foreground">{t('detail_title')}</h2>
             <button onClick={onClose} className="p-1 rounded-full hover:bg-muted transition-colors">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
-          {/* Nutrient bars - Free: calories, protein, fat, sugar */}
           <div className="space-y-4 mb-6">
-            <NutrientRow label="🔥 Calorias" value={totals.calories} goal={dailyGoal} unit="kcal" color="hsl(var(--primary))" />
-            <NutrientRow label="🥩 Proteína" value={totals.protein} goal={goals.protein} unit="g" color="hsl(var(--protein))" />
-            <NutrientRow label="🧈 Gordura" value={totals.fat} goal={goals.fat} unit="g" color="hsl(var(--fat))" />
-            <NutrientRow label="🧊 Açúcar" value={totals.sugar} goal={goals.sugar} unit="g" color="hsl(var(--sugar))" />
+            <NutrientRow label={t('detail_calories')} value={totals.calories} goal={dailyGoal} unit="kcal" color="hsl(var(--primary))" t={t} />
+            <NutrientRow label={t('detail_protein')} value={totals.protein} goal={goals.protein} unit="g" color="hsl(var(--protein))" t={t} />
+            <NutrientRow label={t('detail_fat')} value={totals.fat} goal={goals.fat} unit="g" color="hsl(var(--fat))" t={t} />
+            <NutrientRow label={t('detail_sugar')} value={totals.sugar} goal={goals.sugar} unit="g" color="hsl(var(--sugar))" t={t} />
 
             {premium ? (
               <>
-                <NutrientRow label="🍞 Carboidratos" value={totals.carbs} goal={goals.carbs} unit="g" color="hsl(var(--carbs))" />
-                <NutrientRow label="🧂 Sódio" value={totals.sodium} goal={goals.sodium} unit="mg" color="hsl(var(--sodium))" />
+                <NutrientRow label={t('detail_carbs')} value={totals.carbs} goal={goals.carbs} unit="g" color="hsl(var(--carbs))" t={t} />
+                <NutrientRow label={t('detail_sodium')} value={totals.sodium} goal={goals.sodium} unit="mg" color="hsl(var(--sodium))" t={t} />
                 {totals.fiber !== undefined && totals.fiber > 0 && (
-                  <NutrientRow label="🌾 Fibra" value={totals.fiber} goal={25} unit="g" color="hsl(var(--primary))" />
+                  <NutrientRow label={t('detail_fiber')} value={totals.fiber} goal={25} unit="g" color="hsl(var(--primary))" t={t} />
                 )}
               </>
             ) : (
@@ -106,17 +108,16 @@ const FoodDetailSheet = ({ open, onClose, dailyGoal, onUpdate }: FoodDetailSheet
               >
                 <div className="flex items-center justify-center gap-2">
                   <Lock className="w-4 h-4 text-primary" />
-                  <p className="text-sm font-bold text-foreground">Macros avançados</p>
+                  <p className="text-sm font-bold text-foreground">{t('detail_advancedMacros')}</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Carboidratos, Sódio, Fibra e mais — Seja Premium!</p>
+                <p className="text-xs text-muted-foreground">{t('detail_advancedDesc')}</p>
               </button>
             )}
           </div>
 
-          {/* Food entries */}
-          <h3 className="text-sm font-bold text-muted-foreground mb-3">Alimentos de hoje</h3>
+          <h3 className="text-sm font-bold text-muted-foreground mb-3">{t('detail_todayFoods')}</h3>
           {entries.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Nenhum alimento registrado hoje.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t('detail_noFoodToday')}</p>
           ) : (
             <div className="space-y-2">
               {entries.map(entry => (
