@@ -1,6 +1,5 @@
 import { AdMob, AdmobConsentStatus, InterstitialAdPluginEvents } from '@capacitor-community/admob';
 
-const APP_ID = 'ca-app-pub-9088121551421320~5356890840';
 const INTERSTITIAL_AD_UNIT = 'ca-app-pub-9088121551421320/1581297367';
 
 let initialized = false;
@@ -10,9 +9,7 @@ export async function initAdMob(): Promise<void> {
   if (initialized) return;
 
   try {
-    await AdMob.initialize({
-      requestTrackingAuthorization: true,
-    });
+    await AdMob.initialize();
 
     const consentInfo = await AdMob.requestConsentInfo();
     if (
@@ -41,12 +38,16 @@ export async function showInterstitialAd(): Promise<boolean> {
     });
 
     await new Promise<void>((resolve) => {
-      const cleanup = () => {
-        AdMob.removeAllListeners();
+      const onDismiss = AdMob.addListener(InterstitialAdPluginEvents.Dismissed, () => {
+        onDismiss.then(h => h.remove());
+        onFail.then(h => h.remove());
         resolve();
-      };
-      AdMob.addListener(InterstitialAdPluginEvents.Dismissed, cleanup);
-      AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, cleanup);
+      });
+      const onFail = AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, () => {
+        onDismiss.then(h => h.remove());
+        onFail.then(h => h.remove());
+        resolve();
+      });
     });
 
     await AdMob.showInterstitial();
