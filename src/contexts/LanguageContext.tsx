@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { Language, getSavedLanguage, saveLanguage, detectDeviceLanguage, t as translate } from '@/lib/i18n';
+import { Language, getSavedLanguage, saveLanguage, getDefaultLanguage, t as translate } from '@/lib/i18n';
 
 interface LanguageContextType {
   language: Language;
