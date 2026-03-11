@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LANGUAGES, Language, detectDeviceLanguage } from '@/lib/i18n';
+import { LANGUAGES, Language, getDefaultLanguage } from '@/lib/i18n';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LanguageSelectProps {
