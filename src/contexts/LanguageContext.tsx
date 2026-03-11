@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { Language, getSavedLanguage, saveLanguage, detectDeviceLanguage, t as translate } from '@/lib/i18n';
+import { Language, getSavedLanguage, saveLanguage, getDefaultLanguage, t as translate } from '@/lib/i18n';
 
 interface LanguageContextType {
   language: Language;
@@ -12,7 +12,7 @@ const LanguageContext = createContext<LanguageContextType | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const saved = getSavedLanguage();
-  const [language, setLang] = useState<Language>(saved || detectDeviceLanguage());
+  const [language, setLang] = useState<Language>(saved || getDefaultLanguage());
   const hasLanguage = !!saved;
 
   const setLanguage = useCallback((lang: Language) => {

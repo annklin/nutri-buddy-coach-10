@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LANGUAGES, Language, detectDeviceLanguage } from '@/lib/i18n';
+import { LANGUAGES, Language, getDefaultLanguage } from '@/lib/i18n';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LanguageSelectProps {
@@ -11,8 +11,7 @@ interface LanguageSelectProps {
 
 const LanguageSelect = ({ onComplete }: LanguageSelectProps) => {
   const { setLanguage, t } = useLanguage();
-  const detected = detectDeviceLanguage();
-  const [selected, setSelected] = useState<Language>(detected);
+  const [selected, setSelected] = useState<Language>(getDefaultLanguage());
 
   const handleContinue = () => {
     setLanguage(selected);
@@ -65,11 +64,6 @@ const LanguageSelect = ({ onComplete }: LanguageSelectProps) => {
               <p className="text-sm font-bold text-foreground">{lang.nativeName}</p>
               <p className="text-xs text-muted-foreground">{lang.name}</p>
             </div>
-            {lang.code === detected && (
-              <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                {t('langSelect_detected')}
-              </span>
-            )}
             {selected === lang.code && (
               <div className="w-6 h-6 rounded-full gradient-primary flex items-center justify-center">
                 <Check className="w-3.5 h-3.5 text-primary-foreground" />
