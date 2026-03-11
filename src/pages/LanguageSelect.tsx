@@ -11,8 +11,7 @@ interface LanguageSelectProps {
 
 const LanguageSelect = ({ onComplete }: LanguageSelectProps) => {
   const { setLanguage, t } = useLanguage();
-  const detected = detectDeviceLanguage();
-  const [selected, setSelected] = useState<Language>(detected);
+  const [selected, setSelected] = useState<Language>(getDefaultLanguage());
 
   const handleContinue = () => {
     setLanguage(selected);
