@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Lock } from 'lucide-react';
+import { X, Trash2, Play } from 'lucide-react';
 import { FoodEntry, NutrientInfo } from '@/types';
 import { calculateDailyMacroGoals } from '@/lib/calories';
 import { deleteEntry, getTodayEntries, getTodayTotals, isPremium } from '@/lib/storage';
-import { useNavigate } from 'react-router-dom';
+import { showRewardedAd } from '@/lib/admob';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FoodDetailSheetProps {
@@ -49,12 +50,22 @@ const NutrientRow = ({ label, value, goal, unit, color, t }: {
 };
 
 const FoodDetailSheet = ({ open, onClose, dailyGoal, onUpdate }: FoodDetailSheetProps) => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
+  const [macrosUnlocked, setMacrosUnlocked] = useState(false);
+  const [loadingAd, setLoadingAd] = useState(false);
   const entries = getTodayEntries();
   const totals = getTodayTotals();
   const goals = calculateDailyMacroGoals(dailyGoal);
   const premium = isPremium();
+
+  const handleWatchAd = async () => {
+    setLoadingAd(true);
+    const rewarded = await showRewardedAd();
+    setLoadingAd(false);
+    if (rewarded) {
+      setMacrosUnlocked(true);
+    }
+  };
 
   const handleDelete = (id: string) => {
     deleteEntry(id);
@@ -62,6 +73,8 @@ const FoodDetailSheet = ({ open, onClose, dailyGoal, onUpdate }: FoodDetailSheet
   };
 
   if (!open) return null;
+
+  const showAdvanced = premium || macrosUnlocked;
 
   return (
     <AnimatePresence>
@@ -93,7 +106,7 @@ const FoodDetailSheet = ({ open, onClose, dailyGoal, onUpdate }: FoodDetailSheet
             <NutrientRow label={t('detail_fat')} value={totals.fat} goal={goals.fat} unit="g" color="hsl(var(--fat))" t={t} />
             <NutrientRow label={t('detail_sugar')} value={totals.sugar} goal={goals.sugar} unit="g" color="hsl(var(--sugar))" t={t} />
 
-            {premium ? (
+            {showAdvanced ? (
               <>
                 <NutrientRow label={t('detail_carbs')} value={totals.carbs} goal={goals.carbs} unit="g" color="hsl(var(--carbs))" t={t} />
                 <NutrientRow label={t('detail_sodium')} value={totals.sodium} goal={goals.sodium} unit="mg" color="hsl(var(--sodium))" t={t} />
@@ -103,14 +116,15 @@ const FoodDetailSheet = ({ open, onClose, dailyGoal, onUpdate }: FoodDetailSheet
               </>
             ) : (
               <button
-                onClick={() => { onClose(); navigate('/premium'); }}
+                onClick={handleWatchAd}
+                disabled={loadingAd}
                 className="w-full p-4 bg-accent rounded-xl text-center space-y-1"
               >
                 <div className="flex items-center justify-center gap-2">
-                  <Lock className="w-4 h-4 text-primary" />
-                  <p className="text-sm font-bold text-foreground">{t('detail_advancedMacros')}</p>
+                  <Play className="w-4 h-4 text-primary" />
+                  <p className="text-sm font-bold text-foreground">{t('detail_watchAdMacros')}</p>
                 </div>
-                <p className="text-xs text-muted-foreground">{t('detail_advancedDesc')}</p>
+                <p className="text-xs text-muted-foreground">{t('detail_watchAdDesc')}</p>
               </button>
             )}
           </div>

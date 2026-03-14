@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Check, Zap, Loader2, Crown, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, Zap, Loader2, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,8 +40,8 @@ const Premium = () => {
 
   const features = [
     t('prem_noAds'),
-    t('prem_fullHistory'),
-    t('prem_advancedNutrients'),
+    t('prem_noInterstitials'),
+    t('prem_instantMacros'),
   ];
 
   const plans = {
@@ -87,7 +87,7 @@ const Premium = () => {
         >
           <div className="bg-card rounded-2xl p-6 shadow-card border border-primary/20 mb-4">
             <h2 className="text-2xl font-black text-foreground mb-1">{t('prem_name')}</h2>
-            <p className="text-muted-foreground text-sm mb-5">{t('prem_subtitle')}</p>
+            <p className="text-muted-foreground text-sm mb-5">{t('prem_adFreeDesc')}</p>
             <div className="space-y-3 text-left">
               {features.map(f => (
                 <div key={f} className="flex items-center gap-3">
