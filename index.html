@@ -15,19 +15,27 @@
   </head>
 
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    
-<script>
-if (localStorage.getItem("premium_user") === "true") {
-  document.querySelectorAll(".ad-container").forEach(el => el.remove());
-}
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
 
-function ativarPremium() {
-  localStorage.setItem("premium_user", "true");
-  location.reload();
-}
-</script>
-<button onclick="ativarPremium()">Já paguei</button>
-  </body>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const premium = params.get("premium");
+
+    if (premium === "true") {
+      localStorage.setItem("premium_user", "true");
+    }
+
+    if (localStorage.getItem("premium_user") === "true") {
+      document.querySelectorAll(".ad-container").forEach(el => el.remove());
+    }
+
+    function ativarPremium() {
+      localStorage.setItem("premium_user", "true");
+      location.reload();
+    }
+  </script>
+
+  <button onclick="ativarPremium()">Já paguei</button>
+</body>
 </html>
