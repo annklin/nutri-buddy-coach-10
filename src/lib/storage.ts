@@ -30,10 +30,12 @@ export async function saveEntry(entry: FoodEntry) {
   const count = incrementAdCount();
 
   if (count >= 5 && !isPremium()) {
-    await showInterstitialAd();
+  const shown = await showInterstitialAd();
+
+  if (shown) {
     resetAdCount();
   }
-}
+  }
 
 export function deleteEntry(id: string) {
   const entries = getEntries().filter(e => e.id !== id);
