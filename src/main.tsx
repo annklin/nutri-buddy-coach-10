@@ -1,4 +1,4 @@
-import { iniciarAds } from "./services/admob"
+import { iniciarAds } from "./src/services/admob"
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
