@@ -1,3 +1,4 @@
+import { showInterstitialAd } from '@/lib/admob';
 import { UserProfile, FoodEntry, NutrientInfo } from '@/types';
 
 const KEYS = {
@@ -21,10 +22,17 @@ export function getEntries(): FoodEntry[] {
   return data ? JSON.parse(data) : [];
 }
 
-export function saveEntry(entry: FoodEntry) {
+export async function saveEntry(entry: FoodEntry) {
   const entries = getEntries();
   entries.push(entry);
   localStorage.setItem(KEYS.ENTRIES, JSON.stringify(entries));
+
+  const count = incrementAdCount();
+
+  if (count >= 5 && !isPremium()) {
+    await showInterstitialAd();
+    resetAdCount();
+  }
 }
 
 export function deleteEntry(id: string) {
