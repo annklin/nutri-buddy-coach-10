@@ -17,5 +17,17 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+<script>
+if (localStorage.getItem("premium_user") === "true") {
+  document.querySelectorAll(".ad-container").forEach(el => el.remove());
+}
+
+function ativarPremium() {
+  localStorage.setItem("premium_user", "true");
+  location.reload();
+}
+</script>
+<button onclick="ativarPremium()">Já paguei</button>
   </body>
 </html>
