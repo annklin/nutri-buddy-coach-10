@@ -24,32 +24,43 @@ export function getEntries(): FoodEntry[] {
 }
 
 export async function saveEntry(entry: FoodEntry) {
+
   const entries = getEntries();
+
   entries.push(entry);
+
   localStorage.setItem(KEYS.ENTRIES, JSON.stringify(entries));
 
   const count = incrementAdCount();
 
   if (count >= 5 && !isPremium()) {
+
     const shown = await showInterstitialAd();
 
-    if (shown) {
-      resetAdCount();
-    }
+    if (shown) resetAdCount();
+
   }
+
 }
 
 export function deleteEntry(id: string) {
+
   const entries = getEntries().filter(e => e.id !== id);
+
   localStorage.setItem(KEYS.ENTRIES, JSON.stringify(entries));
+
 }
 
 export function getTodayEntries(): FoodEntry[] {
+
   const today = new Date().toISOString().split('T')[0];
+
   return getEntries().filter(e => e.date === today);
+
 }
 
 export function getTodayTotals(): NutrientInfo {
+
   const entries = getTodayEntries();
 
   return entries.reduce(
@@ -60,7 +71,7 @@ export function getTodayTotals(): NutrientInfo {
       sugar: acc.sugar + e.nutrients.sugar,
       fat: acc.fat + e.nutrients.fat,
       sodium: acc.sodium + e.nutrients.sodium,
-      fiber: (acc.fiber || 0) + (e.nutrients.fiber || 0),
+      fiber: (acc.fiber || 0) + (e.nutrients.fiber || 0)
     }),
     {
       calories: 0,
@@ -72,48 +83,67 @@ export function getTodayTotals(): NutrientInfo {
       fiber: 0
     }
   );
+
 }
 
 export function getEntriesForWeek(): FoodEntry[] {
+
   const now = new Date();
+
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   return getEntries().filter(e => new Date(e.date) >= weekAgo);
+
 }
 
 export function getAdCount(): number {
+
   return parseInt(localStorage.getItem(KEYS.AD_COUNT) || '0');
+
 }
 
 export function incrementAdCount(): number {
+
   const count = getAdCount() + 1;
+
   localStorage.setItem(KEYS.AD_COUNT, count.toString());
+
   return count;
+
 }
 
 export function resetAdCount() {
+
   localStorage.setItem(KEYS.AD_COUNT, '0');
+
 }
 
 export function isPremium(): boolean {
+
   return localStorage.getItem(KEYS.PREMIUM) === 'true';
+
 }
 
 export function setPremium(value: boolean) {
+
   localStorage.setItem(KEYS.PREMIUM, value.toString());
+
 }
 
-/* ---------- MACROS UNLOCK SYSTEM ---------- */
-
 export const unlockMacros = () => {
-  const unlockUntil = Date.now() + 60 * 60 * 1000; // 1 hora
+
+  const unlockUntil = Date.now() + 60 * 60 * 1000;
+
   localStorage.setItem(KEYS.MACROS_UNLOCK, unlockUntil.toString());
+
 };
 
 export const macrosUnlocked = () => {
+
   const unlock = localStorage.getItem(KEYS.MACROS_UNLOCK);
 
   if (!unlock) return false;
 
   return Date.now() < Number(unlock);
+
 };
