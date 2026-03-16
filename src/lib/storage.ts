@@ -90,3 +90,23 @@ export function isPremium(): boolean {
 export function setPremium(value: boolean) {
   localStorage.setItem(KEYS.PREMIUM, value.toString());
 }
+
+  // contador de alimentos para mostrar anúncio
+export const incrementAdCount = () => {
+  const count = Number(localStorage.getItem("adCount") || 0) + 1;
+  localStorage.setItem("adCount", count.toString());
+  return count;
+};
+
+// desbloqueio de macronutrientes por 1 hora
+export const unlockMacros = () => {
+  const unlockUntil = Date.now() + 60 * 60 * 1000;
+  localStorage.setItem("macrosUnlock", unlockUntil.toString());
+};
+
+export const macrosUnlocked = () => {
+  const unlock = localStorage.getItem("macrosUnlock");
+  if (!unlock) return false;
+
+  return Date.now() < Number(unlock);
+};
