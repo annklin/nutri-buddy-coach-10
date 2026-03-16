@@ -37,13 +37,8 @@ const Dashboard = () => {
   }, []);
 
   const handleShowAd = useCallback(async () => {
-
     const shown = await showInterstitialAd();
-
-    if (!shown) {
-      setShowAd(true);
-    }
-
+    if (!shown) setShowAd(true);
   }, []);
 
   const totals = getTodayTotals();
@@ -58,31 +53,27 @@ const Dashboard = () => {
   );
 
   const balloonData: Record<string, { title: string; description: string; color: string }> = {
-
     protein: {
       title: t('dash_protein'),
       description: t('dash_proteinDesc'),
       color: 'hsl(var(--protein))'
     },
-
     fat: {
       title: t('dash_fat'),
       description: t('dash_fatDesc'),
       color: 'hsl(var(--fat))'
     },
-
     sugar: {
       title: t('dash_sugar'),
       description: t('dash_sugarDesc'),
       color: 'hsl(var(--sugar))'
     }
-
   };
 
   return (
-
     <div className="min-h-[100dvh] bg-background pb-20">
 
+      {/* HEADER */}
       <div className="hero-header px-5 pt-8 pb-28 relative overflow-hidden">
 
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
@@ -94,14 +85,9 @@ const Dashboard = () => {
 
             <div className="flex items-center gap-3">
 
-              <img
-                src={MASCOT_LOGO}
-                alt="Logo"
-                className="w-10 h-10 rounded-xl"
-              />
+              <img src={MASCOT_LOGO} alt="Logo" className="w-10 h-10 rounded-xl"/>
 
               <div>
-
                 <p className="text-xs text-white/70 font-semibold">
                   {t('dash_hello')}
                 </p>
@@ -109,7 +95,6 @@ const Dashboard = () => {
                 <h1 className="text-lg font-extrabold text-white">
                   {profile.name}
                 </h1>
-
               </div>
 
             </div>
@@ -118,9 +103,7 @@ const Dashboard = () => {
               onClick={() => setShowSettings(true)}
               className="p-2.5 rounded-2xl bg-white/15 hover:bg-white/25 transition-colors"
             >
-
-              <Settings className="w-5 h-5 text-white" />
-
+              <Settings className="w-5 h-5 text-white"/>
             </button>
 
           </div>
@@ -142,19 +125,18 @@ const Dashboard = () => {
           </div>
 
         </div>
-
       </div>
 
+      {/* PROGRESSO */}
       <div className="px-5 -mt-16 relative z-10">
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity:0,y:20 }}
+          animate={{ opacity:1,y:0 }}
           className="bg-card rounded-[1.75rem] shadow-elevated border border-border p-8"
         >
 
           <div className="flex justify-center">
-
             <CircleProgress
               value={percentage}
               max={100}
@@ -162,36 +144,31 @@ const Dashboard = () => {
               strokeWidth={14}
               color="hsl(var(--primary))"
               trackColor="hsl(var(--muted))"
-              label=""
-              unit={t('dash_ofGoal')}
               displayText={`${percentage}%`}
+              unit={t('dash_ofGoal')}
             />
-
           </div>
 
           <p className="text-center text-muted-foreground text-sm font-bold mt-3">
-
             {remaining <= 0
               ? t('dash_goalReached')
-              : t('dash_remaining', { remaining })
-            }
-
+              : t('dash_remaining',{remaining})}
           </p>
 
         </motion.div>
-
       </div>
 
+      {/* MACROS */}
       <div className="px-5 mt-4">
 
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity:0,y:15 }}
+          animate={{ opacity:1,y:0 }}
           className="bg-card rounded-[1.75rem] shadow-elevated border border-border p-5"
         >
 
           <button
-            onClick={() => setShowDetail(true)}
+            onClick={()=>setShowDetail(true)}
             className="flex items-center justify-between w-full mb-4"
           >
 
@@ -199,7 +176,7 @@ const Dashboard = () => {
               {t('dash_macros')}
             </h2>
 
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground"/>
 
           </button>
 
@@ -211,9 +188,9 @@ const Dashboard = () => {
               size={90}
               strokeWidth={8}
               color="hsl(var(--protein))"
-              icon={<SteakIcon size={22} className="text-protein" />}
+              icon={<SteakIcon size={22} className="text-protein"/>}
               macroLabel={`${Math.round(totals.protein)}g`}
-              macroGoal={t('dash_of_g', { goal: goals.protein })}
+              macroGoal={t('dash_of_g',{goal:goals.protein})}
             />
 
             <CircleProgress
@@ -222,9 +199,9 @@ const Dashboard = () => {
               size={90}
               strokeWidth={8}
               color="hsl(var(--fat))"
-              icon={<OilDropIcon size={22} className="text-fat" />}
+              icon={<OilDropIcon size={22} className="text-fat"/>}
               macroLabel={`${Math.round(totals.fat)}g`}
-              macroGoal={t('dash_of_g', { goal: goals.fat })}
+              macroGoal={t('dash_of_g',{goal:goals.fat})}
             />
 
             <CircleProgress
@@ -233,22 +210,135 @@ const Dashboard = () => {
               size={90}
               strokeWidth={8}
               color="hsl(var(--sugar))"
-              icon={<SugarCubesIcon size={22} className="text-sugar" />}
+              icon={<SugarCubesIcon size={22} className="text-sugar"/>}
               macroLabel={`${Math.round(totals.sugar)}g`}
-              macroGoal={t('dash_of_g', { goal: goals.sugar })}
+              macroGoal={t('dash_of_g',{goal:goals.sugar})}
             />
 
           </div>
 
         </motion.div>
+      </div>
+
+      {/* BOTÕES ADICIONAR */}
+      <div className="px-5 mt-4 flex gap-3">
+
+        <motion.button
+          whileTap={{scale:0.97}}
+          onClick={()=>{setEntryMode('text');setShowFoodEntry(true);}}
+          className="flex-1 flex flex-col items-start gap-1 p-4 rounded-[1.5rem] bg-card shadow-elevated border border-border"
+        >
+
+          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center mb-1">
+            <Sparkles className="w-5 h-5 text-white"/>
+          </div>
+
+          <p className="text-sm font-extrabold text-foreground">
+            {t('dash_addText')}
+          </p>
+
+          <p className="text-xs text-muted-foreground">
+            {t('dash_describeFood')}
+          </p>
+
+        </motion.button>
+
+        <motion.button
+          whileTap={{scale:0.97}}
+          onClick={()=>{setEntryMode('photo');setShowFoodEntry(true);}}
+          className="flex-1 flex flex-col items-start gap-1 p-4 rounded-[1.5rem] bg-card shadow-elevated border border-border"
+        >
+
+          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center mb-1">
+            <Camera className="w-5 h-5 text-white"/>
+          </div>
+
+          <p className="text-sm font-extrabold text-foreground">
+            {t('dash_addPhoto')}
+          </p>
+
+          <p className="text-xs text-muted-foreground">
+            {t('dash_takePhoto')}
+          </p>
+
+        </motion.button>
 
       </div>
 
-      {/* restante do código permanece igual */}
+      {/* LISTA DE ALIMENTOS */}
+      <div className="px-5 mt-5">
+
+        <div className="flex items-center justify-between mb-3">
+
+          <h2 className="text-base font-extrabold text-foreground">
+            {t('dash_today')}
+          </h2>
+
+          <button
+            onClick={()=>navigate('/history')}
+            className="text-xs text-muted-foreground font-semibold hover:text-foreground"
+          >
+            {t('dash_viewHistory')}
+          </button>
+
+        </div>
+
+        {todayEntries.length===0 ? (
+
+          <div className="bg-card rounded-[1.5rem] shadow-elevated border border-border p-8 text-center">
+            <p className="text-3xl mb-2">🥗</p>
+            <p className="text-sm text-muted-foreground font-semibold">
+              {t('dash_noFood')}
+            </p>
+          </div>
+
+        ) : (
+
+          <div className="space-y-3">
+
+            {todayEntries.map((entry,i)=>(
+              <motion.div
+                key={entry.id}
+                initial={{opacity:0,y:8}}
+                animate={{opacity:1,y:0}}
+                transition={{delay:i*0.04}}
+                className="flex items-center gap-3 p-4 bg-card rounded-[1.5rem] shadow-elevated border border-border"
+              >
+
+                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+                  🍽️
+                </div>
+
+                <div className="flex-1">
+                  <p className="text-sm font-extrabold">{entry.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {entry.quantity}
+                  </p>
+                </div>
+
+                <p className="text-sm font-extrabold">
+                  {entry.nutrients.calories} kcal
+                </p>
+
+                <button
+                  onClick={()=>{deleteEntry(entry.id);refresh();}}
+                  className="p-2 rounded-xl hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-4 h-4 text-destructive"/>
+                </button>
+
+              </motion.div>
+            ))}
+
+          </div>
+
+        )}
+
+      </div>
 
       <FoodEntryDialog
         open={showFoodEntry}
-        onClose={() => setShowFoodEntry(false)}
+        onClose={()=>setShowFoodEntry(false)}
         onAdded={refresh}
         dailyGoal={profile.dailyCalorieGoal}
         onShowAd={handleShowAd}
@@ -256,30 +346,25 @@ const Dashboard = () => {
 
       <FoodDetailSheet
         open={showDetail}
-        onClose={() => setShowDetail(false)}
+        onClose={()=>setShowDetail(false)}
         dailyGoal={profile.dailyCalorieGoal}
         onUpdate={refresh}
       />
 
       <SettingsDialog
         open={showSettings}
-        onClose={() => setShowSettings(false)}
+        onClose={()=>setShowSettings(false)}
         onUpdate={refresh}
       />
 
       <AdDialog
         open={showAd}
-        onClose={() => setShowAd(false)}
-        onPremium={() => {
-          setShowAd(false);
-          navigate('/premium');
-        }}
+        onClose={()=>setShowAd(false)}
+        onPremium={()=>{setShowAd(false);navigate('/premium');}}
       />
 
     </div>
-
   );
-
 };
 
 export default Dashboard;
