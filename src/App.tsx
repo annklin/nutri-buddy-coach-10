@@ -20,18 +20,14 @@ import { initAdMob, showRewardedAd } from "@/lib/admob";
 const queryClient = new QueryClient();
 
 function App() {
-
-  // Estado para Premium
   const [isPremium, setIsPremium] = useState(false);
-
-  // Controle de anúncios
   const [anunciosAssistidos, setAnunciosAssistidos] = useState(0);
   const MAX_ANUNCIOS = 5;
 
   useEffect(() => {
     initAdMob();
 
-    // Detecta Premium via URL
+    // Detecta Premium via URL ou localStorage
     const params = new URLSearchParams(window.location.search);
     if (params.get("premium") === "true") {
       localStorage.setItem("premium_user", "true");
@@ -41,41 +37,43 @@ function App() {
       setIsPremium(true);
     }
 
-    // Aplica tema salvo
+    // Aplica tema escuro persistente
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       document.documentElement.classList.add("dark");
     }
-
   }, []);
 
-  // Função para liberar alimentos com anúncio
+  // Função para liberar alimento após anúncio (usada em Index.tsx)
   async function liberarAlimento(alimentoId: number) {
     if (isPremium) {
       console.log(`Alimento ${alimentoId} liberado automaticamente (Premium)!`);
-      return;
+      return true;
     }
 
     if (anunciosAssistidos >= MAX_ANUNCIOS) {
       console.log(`Máximo de anúncios atingido, alimento ${alimentoId} não pode ser liberado agora.`);
-      return;
+      return false;
     }
 
     const sucesso = await showRewardedAd();
     if (sucesso) {
       setAnunciosAssistidos(prev => prev + 1);
       console.log(`Alimento ${alimentoId} liberado após anúncio!`);
+      return true;
     }
+
+    return false;
   }
 
   // Alterna tema escuro
   function toggleTheme(isDark: boolean) {
     if (isDark) {
       document.documentElement.classList.add("dark");
-      localStorage.setItem("theme","dark");
+      localStorage.setItem("theme", "dark");
     } else {
       document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme","light");
+      localStorage.setItem("theme", "light");
     }
   }
 
@@ -86,18 +84,9 @@ function App() {
           <Toaster />
           <Sonner />
 
-          {/* Cards de alimentos */}
-          <div style={{display:"flex", gap:"10px", margin:"10px"}}>
-            {[1,2,3,4,5].map(id => (
-              <button key={id} onClick={() => liberarAlimento(id)}>
-                Alimento {id}
-              </button>
-            ))}
-          </div>
-
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index isPremium={isPremium} />} />
+              <Route path="/" element={<Index isPremium={isPremium} liberarAlimento={liberarAlimento} />} />
               <Route path="/history" element={<History />} />
               <Route path="/premium" element={<Premium />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
