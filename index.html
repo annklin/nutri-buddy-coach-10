@@ -1,4 +1,3 @@
-<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -15,27 +14,33 @@
   </head>
 
   <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
+    <div id="root"></div>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const premium = params.get("premium");
+    <!-- Script que detecta premium antes do React iniciar -->
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("premium") === "true") {
+        localStorage.setItem("premium_user","true");
+        window.history.replaceState({}, document.title, "/"); // remove ?premium=true da URL
+      }
+    </script>
 
-    if (premium === "true") {
-      localStorage.setItem("premium_user", "true");
-    }
+    <!-- Script do React -->
+    <script type="module" src="/src/main.tsx"></script>
 
-    if (localStorage.getItem("premium_user") === "true") {
-      document.querySelectorAll(".ad-container").forEach(el => el.remove());
-    }
+    <!-- Botão manual para teste -->
+    <button onclick="ativarPremium()">Já paguei</button>
 
-    function ativarPremium() {
-      localStorage.setItem("premium_user", "true");
-      location.reload();
-    }
-  </script>
+    <script>
+      function ativarPremium() {
+        localStorage.setItem("premium_user","true");
+        location.reload();
+      }
 
-  <button onclick="ativarPremium()">Já paguei</button>
-</body>
+      // Remove anúncios se o usuário já for premium
+      if (localStorage.getItem("premium_user") === "true") {
+        document.querySelectorAll(".ad-container").forEach(el => el.remove());
+      }
+    </script>
+  </body>
 </html>
