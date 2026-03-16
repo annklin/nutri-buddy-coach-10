@@ -11,36 +11,34 @@
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Aplica tema salvo -->
+    <script>
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
   </head>
 
   <body>
     <div id="root"></div>
 
-    <!-- Script que detecta premium antes do React iniciar -->
+    <!-- Detecta Premium antes do React iniciar -->
     <script>
       const params = new URLSearchParams(window.location.search);
       if (params.get("premium") === "true") {
-        localStorage.setItem("premium_user","true");
-        window.history.replaceState({}, document.title, "/"); // remove ?premium=true da URL
+        localStorage.setItem("premium_user", "true");
+        window.history.replaceState({}, document.title, "/"); // remove ?premium=true
+      }
+
+      // Remove anúncios se usuário for Premium
+      if (localStorage.getItem("premium_user") === "true") {
+        document.querySelectorAll(".ad-container").forEach(el => el.remove());
       }
     </script>
 
     <!-- Script do React -->
     <script type="module" src="/src/main.tsx"></script>
-
-    <!-- Botão manual para teste -->
-    <button onclick="ativarPremium()">Já paguei</button>
-
-    <script>
-      function ativarPremium() {
-        localStorage.setItem("premium_user","true");
-        location.reload();
-      }
-
-      // Remove anúncios se o usuário já for premium
-      if (localStorage.getItem("premium_user") === "true") {
-        document.querySelectorAll(".ad-container").forEach(el => el.remove());
-      }
-    </script>
   </body>
 </html>
