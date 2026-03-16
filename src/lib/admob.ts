@@ -25,7 +25,9 @@ export async function initAdMob(): Promise<void> {
       consentInfo.isConsentFormAvailable &&
       consentInfo.status === AdmobConsentStatus.REQUIRED
     ) {
+
       await AdMob.showConsentForm();
+
     }
 
     isNative = true;
@@ -34,6 +36,7 @@ export async function initAdMob(): Promise<void> {
   } catch (error) {
 
     console.log("AdMob init error", error);
+
     isNative = false;
     initialized = true;
 
@@ -49,7 +52,7 @@ export async function showInterstitialAd(): Promise<boolean> {
 
     await AdMob.prepareInterstitial({
       adId: INTERSTITIAL_AD_UNIT,
-      isTesting: false
+      isTesting: true
     });
 
     return new Promise<boolean>(async (resolve) => {
@@ -57,8 +60,7 @@ export async function showInterstitialAd(): Promise<boolean> {
       const dismiss = await AdMob.addListener(
         InterstitialAdPluginEvents.Dismissed,
         () => {
-          dismiss.remove();
-          fail.remove();
+          cleanup();
           resolve(true);
         }
       );
@@ -66,11 +68,15 @@ export async function showInterstitialAd(): Promise<boolean> {
       const fail = await AdMob.addListener(
         InterstitialAdPluginEvents.FailedToShow,
         () => {
-          dismiss.remove();
-          fail.remove();
+          cleanup();
           resolve(false);
         }
       );
+
+      function cleanup() {
+        dismiss.remove();
+        fail.remove();
+      }
 
       await AdMob.showInterstitial();
 
@@ -79,6 +85,7 @@ export async function showInterstitialAd(): Promise<boolean> {
   } catch (error) {
 
     console.log("Interstitial error", error);
+
     return false;
 
   }
@@ -93,7 +100,7 @@ export async function showRewardedAd(): Promise<boolean> {
 
     await AdMob.prepareRewardVideoAd({
       adId: REWARDED_AD_UNIT,
-      isTesting: false
+      isTesting: true
     });
 
     return new Promise<boolean>(async (resolve) => {
@@ -135,6 +142,7 @@ export async function showRewardedAd(): Promise<boolean> {
   } catch (error) {
 
     console.log("Rewarded error", error);
+
     return false;
 
   }
