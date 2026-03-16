@@ -6,6 +6,7 @@ const KEYS = {
   ENTRIES: 'calorie_app_entries',
   AD_COUNT: 'calorie_app_ad_count',
   PREMIUM: 'calorie_app_premium',
+  MACROS_UNLOCK: 'macrosUnlock'
 };
 
 export function getProfile(): UserProfile | null {
@@ -30,12 +31,13 @@ export async function saveEntry(entry: FoodEntry) {
   const count = incrementAdCount();
 
   if (count >= 5 && !isPremium()) {
-  const shown = await showInterstitialAd();
+    const shown = await showInterstitialAd();
 
-  if (shown) {
-    resetAdCount();
+    if (shown) {
+      resetAdCount();
+    }
   }
-  }
+}
 
 export function deleteEntry(id: string) {
   const entries = getEntries().filter(e => e.id !== id);
@@ -49,6 +51,7 @@ export function getTodayEntries(): FoodEntry[] {
 
 export function getTodayTotals(): NutrientInfo {
   const entries = getTodayEntries();
+
   return entries.reduce(
     (acc, e) => ({
       calories: acc.calories + e.nutrients.calories,
@@ -59,13 +62,22 @@ export function getTodayTotals(): NutrientInfo {
       sodium: acc.sodium + e.nutrients.sodium,
       fiber: (acc.fiber || 0) + (e.nutrients.fiber || 0),
     }),
-    { calories: 0, protein: 0, carbs: 0, sugar: 0, fat: 0, sodium: 0, fiber: 0 }
+    {
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      sugar: 0,
+      fat: 0,
+      sodium: 0,
+      fiber: 0
+    }
   );
 }
 
 export function getEntriesForWeek(): FoodEntry[] {
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
   return getEntries().filter(e => new Date(e.date) >= weekAgo);
 }
 
@@ -91,21 +103,16 @@ export function setPremium(value: boolean) {
   localStorage.setItem(KEYS.PREMIUM, value.toString());
 }
 
-  // contador de alimentos para mostrar anúncio
-export const incrementAdCount = () => {
-  const count = Number(localStorage.getItem("adCount") || 0) + 1;
-  localStorage.setItem("adCount", count.toString());
-  return count;
-};
+/* ---------- MACROS UNLOCK SYSTEM ---------- */
 
-// desbloqueio de macronutrientes por 1 hora
 export const unlockMacros = () => {
-  const unlockUntil = Date.now() + 60 * 60 * 1000;
-  localStorage.setItem("macrosUnlock", unlockUntil.toString());
+  const unlockUntil = Date.now() + 60 * 60 * 1000; // 1 hora
+  localStorage.setItem(KEYS.MACROS_UNLOCK, unlockUntil.toString());
 };
 
 export const macrosUnlocked = () => {
-  const unlock = localStorage.getItem("macrosUnlock");
+  const unlock = localStorage.getItem(KEYS.MACROS_UNLOCK);
+
   if (!unlock) return false;
 
   return Date.now() < Number(unlock);
