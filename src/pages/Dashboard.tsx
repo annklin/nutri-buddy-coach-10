@@ -111,7 +111,89 @@ const Dashboard = () => {
           <div className="text-center">
             <p className="text-sm text-white/70 font-semibold">{t('dash_todayCalories')}</p>
             <p className="text-5xl font-extrabold text-white mt-1">{totals.calories}</p>
-            <p className="text-sm text-white/70 font-semibold mt-1">{t('dash_of', { goal: profile.dailyCalorieGoal })}</p>
+            <p className="text-sm <div className="px-5 mt-4">
+
+<motion.div
+initial={{ opacity: 0, y: 15 }}
+animate={{ opacity: 1, y: 0 }}
+transition={{ delay: 0.1 }}
+className="bg-card rounded-[1.75rem] shadow-elevated border border-border p-5"
+>
+
+<button
+onClick={() => setShowDetail(true)}
+className="flex items-center justify-between w-full mb-4"
+>
+<h2 className="text-base font-bold text-muted-foreground">
+{t('dash_macros')}
+</h2>
+
+<ChevronRight className="w-4 h-4 text-muted-foreground" />
+
+</button>
+
+<div className="flex justify-around">
+
+<CircleProgress
+value={totals.protein}
+max={goals.protein}
+size={90}
+strokeWidth={8}
+color="hsl(var(--protein))"
+icon={<SteakIcon size={22} className="text-protein" />}
+macroLabel={`${Math.round(totals.protein)}g`}
+macroGoal={t('dash_of_g', { goal: goals.protein })}
+/>
+
+<CircleProgress
+value={totals.fat}
+max={goals.fat}
+size={90}
+strokeWidth={8}
+color="hsl(var(--fat))"
+icon={<OilDropIcon size={22} className="text-fat" />}
+macroLabel={`${Math.round(totals.fat)}g`}
+macroGoal={t('dash_of_g', { goal: goals.fat })}
+/>
+
+<CircleProgress
+value={totals.sugar}
+max={goals.sugar}
+size={90}
+strokeWidth={8}
+color="hsl(var(--sugar))"
+icon={<SugarCubesIcon size={22} className="text-sugar" />}
+macroLabel={`${Math.round(totals.sugar)}g`}
+macroGoal={t('dash_of_g', { goal: goals.sugar })}
+/>
+
+</div>
+
+{!macrosUnlocked && (
+
+<div className="mt-5 text-center">
+
+<p className="text-sm text-muted-foreground mb-3">
+Assistir um anúncio para liberar os macronutrientes extras
+</p>
+
+<button
+onClick={unlockMacrosWithAd}
+className="gradient-primary text-white px-4 py-2 rounded-xl font-bold"
+>
+
+Assistir anúncio
+
+</button>
+
+</div>
+
+)}
+
+</motion.div>
+
+</div>
+          text-white/70 font-semibold mt-1">{t('dash_of', { goal: profile.dailyCalorieGoal })}</p>
           </div>
         </div>
       </div>
@@ -142,92 +224,8 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      <div className="px-5 mt-4">
-        <AdBanner format="horizontal" className="rounded-2xl overflow-hidden" />
-      </div>
-
       {/* Macronutrientes card */}
-      <div className="px-5 mt-4">
-
-{macrosUnlocked ? (
-
-<motion.div
-  initial={{ opacity: 0, y: 15 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.1 }}
-  className="bg-card rounded-[1.75rem] shadow-elevated border border-border p-5"
->
-  <button
-    onClick={() => setShowDetail(true)}
-    className="flex items-center justify-between w-full mb-4"
-  >
-    <h2 className="text-base font-bold text-muted-foreground">
-      {t('dash_macros')}
-    </h2>
-    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-  </button>
-
-  <div className="flex justify-around">
-
-    <CircleProgress
-      value={totals.protein}
-      max={goals.protein}
-      size={90}
-      strokeWidth={8}
-      color="hsl(var(--protein))"
-      icon={<SteakIcon size={22} className="text-protein" />}
-      macroLabel={`${Math.round(totals.protein)}g`}
-      macroGoal={t('dash_of_g', { goal: goals.protein })}
-    />
-
-    <CircleProgress
-      value={totals.fat}
-      max={goals.fat}
-      size={90}
-      strokeWidth={8}
-      color="hsl(var(--fat))"
-      icon={<OilDropIcon size={22} className="text-fat" />}
-      macroLabel={`${Math.round(totals.fat)}g`}
-      macroGoal={t('dash_of_g', { goal: goals.fat })}
-    />
-
-    <CircleProgress
-      value={totals.sugar}
-      max={goals.sugar}
-      size={90}
-      strokeWidth={8}
-      color="hsl(var(--sugar))"
-      icon={<SugarCubesIcon size={22} className="text-sugar" />}
-      macroLabel={`${Math.round(totals.sugar)}g`}
-      macroGoal={t('dash_of_g', { goal: goals.sugar })}
-    />
-
-  </div>
-</motion.div>
-
-) : (
-
-<div className="bg-card rounded-[1.75rem] shadow-elevated border border-border p-6 text-center">
-  <h2 className="text-base font-bold mb-3">
-    {t('dash_macros')}
-  </h2>
-
-  <p className="text-sm text-muted-foreground mb-4">
-    Assistir um anúncio para liberar os macronutrientes por 1 hora
-  </p>
-
-  <button
-    onClick={unlockMacrosWithAd}
-    className="gradient-primary text-white px-4 py-2 rounded-xl font-bold"
-  >
-    Assistir anúncio
-  </button>
-</div>
-
-)}
-
-</div>
-
+      
       {/* Side-by-side action buttons */}
       <div className="px-5 mt-4 flex gap-3">
         <motion.button
