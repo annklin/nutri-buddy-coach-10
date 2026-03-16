@@ -63,13 +63,28 @@ const FoodDetailSheet = ({ open, onClose, dailyGoal, onUpdate }: FoodDetailSheet
   const premium = isPremium();
 
   const handleWatchAd = async () => {
+  try {
     setLoadingAd(true);
+
     const rewarded = await showRewardedAd();
-    setLoadingAd(false);
+
     if (rewarded) {
+      const unlockUntil = Date.now() + 3600000; // 1 hora
+
+      localStorage.setItem(
+        "macrosUnlockedUntil",
+        unlockUntil.toString()
+      );
+
       setMacrosUnlocked(true);
     }
-  };
+
+  } catch (err) {
+    console.error("Erro ao mostrar anúncio", err);
+  } finally {
+    setLoadingAd(false);
+  }
+};
 
   const handleDelete = (id: string) => {
     deleteEntry(id);
