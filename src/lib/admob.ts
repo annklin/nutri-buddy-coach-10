@@ -1,18 +1,26 @@
-import { AdMob, AdmobConsentStatus, InterstitialAdPluginEvents, RewardAdPluginEvents } from '@capacitor-community/admob';
+import {
+  AdMob,
+  AdmobConsentStatus,
+  InterstitialAdPluginEvents,
+  RewardAdPluginEvents
+} from '@capacitor-community/admob';
 
 const INTERSTITIAL_AD_UNIT = 'ca-app-pub-9088121551421320/1581297367';
-const REWARDED_AD_UNIT = 'ca-app-pub-9088121551421320/REWARDED_UNIT_ID'; // TODO: Replace with real rewarded ad unit ID
+const REWARDED_AD_UNIT = 'ca-app-pub-9088121551421320/8743324289';
 
 let initialized = false;
 let isNative = false;
 
 export async function initAdMob(): Promise<void> {
+
   if (initialized) return;
 
   try {
+
     await AdMob.initialize();
 
     const consentInfo = await AdMob.requestConsentInfo();
+
     if (
       consentInfo.isConsentFormAvailable &&
       consentInfo.status === AdmobConsentStatus.REQUIRED
@@ -22,73 +30,113 @@ export async function initAdMob(): Promise<void> {
 
     isNative = true;
     initialized = true;
-  } catch {
+
+  } catch (error) {
+
+    console.log("AdMob init error", error);
     isNative = false;
     initialized = true;
+
   }
+
 }
 
 export async function showInterstitialAd(): Promise<boolean> {
+
   if (!isNative) return false;
 
   try {
+
     await AdMob.prepareInterstitial({
       adId: INTERSTITIAL_AD_UNIT,
-      isTesting: false,
+      isTesting: false
     });
 
-    await new Promise<void>((resolve) => {
-      const onDismiss = AdMob.addListener(InterstitialAdPluginEvents.Dismissed, () => {
-        onDismiss.then(h => h.remove());
-        onFail.then(h => h.remove());
-        resolve();
-      });
-      const onFail = AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, () => {
-        onDismiss.then(h => h.remove());
-        onFail.then(h => h.remove());
-        resolve();
-      });
+    return new Promise<boolean>(async (resolve) => {
+
+      const dismiss = await AdMob.addListener(
+        InterstitialAdPluginEvents.Dismissed,
+        () => {
+          dismiss.remove();
+          fail.remove();
+          resolve(true);
+        }
+      );
+
+      const fail = await AdMob.addListener(
+        InterstitialAdPluginEvents.FailedToShow,
+        () => {
+          dismiss.remove();
+          fail.remove();
+          resolve(false);
+        }
+      );
+
+      await AdMob.showInterstitial();
+
     });
 
-    await AdMob.showInterstitial();
-    return true;
-  } catch {
+  } catch (error) {
+
+    console.log("Interstitial error", error);
     return false;
+
   }
+
 }
 
 export async function showRewardedAd(): Promise<boolean> {
+
   if (!isNative) return false;
 
   try {
+
     await AdMob.prepareRewardVideoAd({
       adId: REWARDED_AD_UNIT,
-      isTesting: false,
+      isTesting: false
     });
 
-    return new Promise<boolean>((resolve) => {
-      const onRewarded = AdMob.addListener(RewardAdPluginEvents.Rewarded, () => {
-        cleanup();
-        resolve(true);
-      });
-      const onDismiss = AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
-        cleanup();
-        resolve(false);
-      });
-      const onFail = AdMob.addListener(RewardAdPluginEvents.FailedToShow, () => {
-        cleanup();
-        resolve(false);
-      });
+    return new Promise<boolean>(async (resolve) => {
+
+      const rewarded = await AdMob.addListener(
+        RewardAdPluginEvents.Rewarded,
+        () => {
+          cleanup();
+          resolve(true);
+        }
+      );
+
+      const dismiss = await AdMob.addListener(
+        RewardAdPluginEvents.Dismissed,
+        () => {
+          cleanup();
+          resolve(false);
+        }
+      );
+
+      const fail = await AdMob.addListener(
+        RewardAdPluginEvents.FailedToShow,
+        () => {
+          cleanup();
+          resolve(false);
+        }
+      );
 
       function cleanup() {
-        onRewarded.then(h => h.remove());
-        onDismiss.then(h => h.remove());
-        onFail.then(h => h.remove());
+        rewarded.remove();
+        dismiss.remove();
+        fail.remove();
       }
 
-      AdMob.showRewardVideoAd();
+      await AdMob.showRewardVideoAd();
+
     });
-  } catch {
+
+  } catch (error) {
+
+    console.log("Rewarded error", error);
     return false;
+
   }
+
 }
