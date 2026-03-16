@@ -3,7 +3,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -32,7 +31,7 @@ function App() {
     if (params.get("premium") === "true") {
       localStorage.setItem("premium_user", "true");
       setIsPremium(true);
-      window.history.replaceState({}, document.title, "/"); // remove ?premium=true
+      window.history.replaceState({}, document.title, "/");
     } else if (localStorage.getItem("premium_user") === "true") {
       setIsPremium(true);
     }
@@ -44,25 +43,16 @@ function App() {
     }
   }, []);
 
-  // Função para liberar alimento após anúncio (usada em Index.tsx)
+  // Função para liberar alimento após anúncio
   async function liberarAlimento(alimentoId: number) {
-    if (isPremium) {
-      console.log(`Alimento ${alimentoId} liberado automaticamente (Premium)!`);
-      return true;
-    }
-
-    if (anunciosAssistidos >= MAX_ANUNCIOS) {
-      console.log(`Máximo de anúncios atingido, alimento ${alimentoId} não pode ser liberado agora.`);
-      return false;
-    }
+    if (isPremium) return true;
+    if (anunciosAssistidos >= MAX_ANUNCIOS) return false;
 
     const sucesso = await showRewardedAd();
     if (sucesso) {
       setAnunciosAssistidos(prev => prev + 1);
-      console.log(`Alimento ${alimentoId} liberado após anúncio!`);
       return true;
     }
-
     return false;
   }
 
@@ -83,17 +73,18 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index isPremium={isPremium} liberarAlimento={liberarAlimento} />} />
+              <Route
+                path="/"
+                element={<Index isPremium={isPremium} liberarAlimento={liberarAlimento} />}
+              />
               <Route path="/history" element={<History />} />
               <Route path="/premium" element={<Premium />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-
         </TooltipProvider>
       </LanguageProvider>
     </QueryClientProvider>
