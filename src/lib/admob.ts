@@ -50,11 +50,11 @@ export async function showInterstitialAd(): Promise<boolean> {
 
   try {
 
-    await AdMob.prepareInterstitial({
-      adId: INTERSTITIAL_AD_UNIT,
+    await AdMob.prepareRewardVideoAd({
+      adId: REWARDED_AD_UNIT,
       isTesting: true
     });
-
+await AdMob.showRewardVideoAd();
     return new Promise<boolean>(async (resolve) => {
 
       const dismiss = await AdMob.addListener(
@@ -130,7 +130,7 @@ export async function showRewardedAd(): Promise<boolean> {
       );
 
       function cleanup() {
-        rewarded.remove();
+        
         dismiss.remove();
         fail.remove();
       }
