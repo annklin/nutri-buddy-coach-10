@@ -51,7 +51,11 @@ const NutrientRow = ({ label, value, goal, unit, color, t }: {
 
 const FoodDetailSheet = ({ open, onClose, dailyGoal, onUpdate }: FoodDetailSheetProps) => {
   const { t } = useLanguage();
-  const [macrosUnlocked, setMacrosUnlocked] = useState(false);
+  const [macrosUnlocked, setMacrosUnlocked] = useState(() => {
+  const unlockTime = localStorage.getItem("macrosUnlockedUntil");
+  if (!unlockTime) return false;
+  return Date.now() < Number(unlockTime);
+});
   const [loadingAd, setLoadingAd] = useState(false);
   const entries = getTodayEntries();
   const totals = getTodayTotals();
