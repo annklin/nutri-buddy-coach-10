@@ -13,12 +13,13 @@ import { getProfile, getTodayTotals, getTodayEntries, deleteEntry } from '@/lib/
 import { calculateDailyMacroGoals } from '@/lib/calories';
 import { useNavigate } from 'react-router-dom';
 import { MASCOT_LOGO } from '@/lib/mascot';
-import AdBanner from '@/components/AdBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const Dashboard = () => {
+
   const navigate = useNavigate();
   const { t } = useLanguage();
+
   const profile = getProfile()!;
   const [, setRefresh] = useState(0);
   const refresh = useCallback(() => setRefresh(r => r + 1), []);
@@ -27,185 +28,182 @@ const Dashboard = () => {
   const [showDetail, setShowDetail] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAd, setShowAd] = useState(false);
-  const [balloon, setBalloon] = useState<string | null>(null);
-  const [entryMode, setEntryMode] = useState<'text' | 'photo'>('text');
-  const [macrosUnlocked, setMacrosUnlocked] = useState(() => {
-  const unlockTime = Number(localStorage.getItem("macroUnlock") || 0);
-  return Date.now() < unlockTime;
-});
 
-  useEffect(() => { initAdMob(); }, []);
+  const [balloon, setBalloon] = useState<string | null>(null);
+
+  const [entryMode, setEntryMode] = useState<'text' | 'photo'>('text');
+
+  const [macrosUnlocked, setMacrosUnlocked] = useState(() => {
+    const unlockTime = Number(localStorage.getItem("macroUnlock") || 0);
+    return Date.now() < unlockTime;
+  });
+
+  useEffect(() => {
+    initAdMob();
+  }, []);
+
   useEffect(() => {
 
-  const interval = setInterval(() => {
+    const interval = setInterval(() => {
 
-    const unlockTime = Number(localStorage.getItem("macroUnlock") || 0);
+      const unlockTime = Number(localStorage.getItem("macroUnlock") || 0);
 
-    if (Date.now() > unlockTime) {
-      setMacrosUnlocked(false);
-    }
+      if (Date.now() > unlockTime) {
+        setMacrosUnlocked(false);
+      }
 
-  }, 30000);
+    }, 30000);
 
-  return () => clearInterval(interval);
+    return () => clearInterval(interval);
 
-}, []);
+  }, []);
 
   const handleShowAd = useCallback(async () => {
+
     const shown = await showInterstitialAd();
-    if (!shown) setShowAd(true);
+
+    if (!shown) {
+      setShowAd(true);
+    }
+
   }, []);
+
   const unlockMacrosWithAd = async () => {
-  const shown = await showInterstitialAd();
 
-  if (shown) {
-    const oneHour = 60 * 60 * 1000;
+    const shown = await showInterstitialAd();
 
-    localStorage.setItem(
-      "macroUnlock",
-      (Date.now() + oneHour).toString()
-    );
+    if (shown) {
 
-    setMacrosUnlocked(true);
-  } else {
-    setShowAd(true);
-  }
-};
+      const oneHour = 60 * 60 * 1000;
+
+      localStorage.setItem(
+        "macroUnlock",
+        (Date.now() + oneHour).toString()
+      );
+
+      setMacrosUnlocked(true);
+
+    } else {
+
+      setShowAd(true);
+
+    }
+
+  };
 
   const totals = getTodayTotals();
   const goals = calculateDailyMacroGoals(profile.dailyCalorieGoal);
   const todayEntries = getTodayEntries();
+
   const remaining = profile.dailyCalorieGoal - totals.calories;
-  const percentage = Math.min(Math.round((totals.calories / profile.dailyCalorieGoal) * 100), 100);
+
+  const percentage = Math.min(
+    Math.round((totals.calories / profile.dailyCalorieGoal) * 100),
+    100
+  );
 
   const balloonData: Record<string, { title: string; description: string; color: string }> = {
-    protein: { title: t('dash_protein'), description: t('dash_proteinDesc'), color: 'hsl(var(--protein))' },
-    fat: { title: t('dash_fat'), description: t('dash_fatDesc'), color: 'hsl(var(--fat))' },
-    sugar: { title: t('dash_sugar'), description: t('dash_sugarDesc'), color: 'hsl(var(--sugar))' },
+
+    protein: {
+      title: t('dash_protein'),
+      description: t('dash_proteinDesc'),
+      color: 'hsl(var(--protein))'
+    },
+
+    fat: {
+      title: t('dash_fat'),
+      description: t('dash_fatDesc'),
+      color: 'hsl(var(--fat))'
+    },
+
+    sugar: {
+      title: t('dash_sugar'),
+      description: t('dash_sugarDesc'),
+      color: 'hsl(var(--sugar))'
+    }
+
   };
 
   return (
+
     <div className="min-h-[100dvh] bg-background pb-20">
-      {/* Green Header */}
+
+      {/* Header */}
+
       <div className="hero-header px-5 pt-8 pb-28 relative overflow-hidden">
+
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
         <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/10" />
 
         <div className="relative z-10">
+
           <div className="flex items-center justify-between mb-8">
+
             <div className="flex items-center gap-3">
-              <img src={MASCOT_LOGO} alt="Logo" className="w-10 h-10 rounded-xl" />
+
+              <img
+                src={MASCOT_LOGO}
+                alt="Logo"
+                className="w-10 h-10 rounded-xl"
+              />
+
               <div>
-                <p className="text-xs text-white/70 font-semibold">{t('dash_hello')}</p>
-                <h1 className="text-lg font-extrabold text-white">{profile.name}</h1>
+
+                <p className="text-xs text-white/70 font-semibold">
+                  {t('dash_hello')}
+                </p>
+
+                <h1 className="text-lg font-extrabold text-white">
+                  {profile.name}
+                </h1>
+
               </div>
+
             </div>
+
             <button
               onClick={() => setShowSettings(true)}
               className="p-2.5 rounded-2xl bg-white/15 hover:bg-white/25 transition-colors"
             >
+
               <Settings className="w-5 h-5 text-white" />
+
             </button>
+
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-white/70 font-semibold">{t('dash_todayCalories')}</p>
-            <p className="text-5xl font-extrabold text-white mt-1">{totals.calories}</p>
-            <p className="text-sm <div className="px-5 mt-4">
 
-<motion.div
-initial={{ opacity: 0, y: 15 }}
-animate={{ opacity: 1, y: 0 }}
-transition={{ delay: 0.1 }}
-className="bg-card rounded-[1.75rem] shadow-elevated border border-border p-5"
->
+            <p className="text-sm text-white/70 font-semibold">
+              {t('dash_todayCalories')}
+            </p>
 
-<button
-onClick={() => setShowDetail(true)}
-className="flex items-center justify-between w-full mb-4"
->
-<h2 className="text-base font-bold text-muted-foreground">
-{t('dash_macros')}
-</h2>
+            <p className="text-5xl font-extrabold text-white mt-1">
+              {totals.calories}
+            </p>
 
-<ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <p className="text-sm text-white/70 font-semibold mt-1">
+              {t('dash_of', { goal: profile.dailyCalorieGoal })}
+            </p>
 
-</button>
-
-<div className="flex justify-around">
-
-<CircleProgress
-value={totals.protein}
-max={goals.protein}
-size={90}
-strokeWidth={8}
-color="hsl(var(--protein))"
-icon={<SteakIcon size={22} className="text-protein" />}
-macroLabel={`${Math.round(totals.protein)}g`}
-macroGoal={t('dash_of_g', { goal: goals.protein })}
-/>
-
-<CircleProgress
-value={totals.fat}
-max={goals.fat}
-size={90}
-strokeWidth={8}
-color="hsl(var(--fat))"
-icon={<OilDropIcon size={22} className="text-fat" />}
-macroLabel={`${Math.round(totals.fat)}g`}
-macroGoal={t('dash_of_g', { goal: goals.fat })}
-/>
-
-<CircleProgress
-value={totals.sugar}
-max={goals.sugar}
-size={90}
-strokeWidth={8}
-color="hsl(var(--sugar))"
-icon={<SugarCubesIcon size={22} className="text-sugar" />}
-macroLabel={`${Math.round(totals.sugar)}g`}
-macroGoal={t('dash_of_g', { goal: goals.sugar })}
-/>
-
-</div>
-
-{!macrosUnlocked && (
-
-<div className="mt-5 text-center">
-
-<p className="text-sm text-muted-foreground mb-3">
-Assistir um anúncio para liberar os macronutrientes extras
-</p>
-
-<button
-onClick={unlockMacrosWithAd}
-className="gradient-primary text-white px-4 py-2 rounded-xl font-bold"
->
-
-Assistir anúncio
-
-</button>
-
-</div>
-
-)}
-
-</motion.div>
-
-</div>
-          text-white/70 font-semibold mt-1">{t('dash_of', { goal: profile.dailyCalorieGoal })}</p>
           </div>
+
         </div>
+
       </div>
 
-      {/* Overlapping progress card */}
+      {/* Progress Card */}
+
       <div className="px-5 -mt-16 relative z-10">
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-[1.75rem] shadow-elevated border border-border p-8"
         >
+
           <div className="flex justify-center">
+
             <CircleProgress
               value={percentage}
               max={100}
@@ -217,57 +215,196 @@ Assistir anúncio
               unit={t('dash_ofGoal')}
               displayText={`${percentage}%`}
             />
+
           </div>
+
           <p className="text-center text-muted-foreground text-sm font-bold mt-3">
-            {remaining <= 0 ? t('dash_goalReached') : t('dash_remaining', { remaining })}
+
+            {remaining <= 0
+              ? t('dash_goalReached')
+              : t('dash_remaining', { remaining })
+            }
+
           </p>
+
         </motion.div>
+
       </div>
 
-      {/* Macronutrientes card */}
-      
-      {/* Side-by-side action buttons */}
+      {/* Macronutrientes */}
+
+      <div className="px-5 mt-4">
+
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-[1.75rem] shadow-elevated border border-border p-5"
+        >
+
+          <button
+            onClick={() => setShowDetail(true)}
+            className="flex items-center justify-between w-full mb-4"
+          >
+
+            <h2 className="text-base font-bold text-muted-foreground">
+              {t('dash_macros')}
+            </h2>
+
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+
+          </button>
+
+          <div className="flex justify-around">
+
+            <CircleProgress
+              value={totals.protein}
+              max={goals.protein}
+              size={90}
+              strokeWidth={8}
+              color="hsl(var(--protein))"
+              icon={<SteakIcon size={22} className="text-protein" />}
+              macroLabel={`${Math.round(totals.protein)}g`}
+              macroGoal={t('dash_of_g', { goal: goals.protein })}
+            />
+
+            <CircleProgress
+              value={totals.fat}
+              max={goals.fat}
+              size={90}
+              strokeWidth={8}
+              color="hsl(var(--fat))"
+              icon={<OilDropIcon size={22} className="text-fat" />}
+              macroLabel={`${Math.round(totals.fat)}g`}
+              macroGoal={t('dash_of_g', { goal: goals.fat })}
+            />
+
+            <CircleProgress
+              value={totals.sugar}
+              max={goals.sugar}
+              size={90}
+              strokeWidth={8}
+              color="hsl(var(--sugar))"
+              icon={<SugarCubesIcon size={22} className="text-sugar" />}
+              macroLabel={`${Math.round(totals.sugar)}g`}
+              macroGoal={t('dash_of_g', { goal: goals.sugar })}
+            />
+
+          </div>
+
+          {!macrosUnlocked && (
+
+            <div className="mt-5 text-center">
+
+              <p className="text-sm text-muted-foreground mb-3">
+                Assistir um anúncio para liberar os macronutrientes extras
+              </p>
+
+              <button
+                onClick={unlockMacrosWithAd}
+                className="gradient-primary text-white px-4 py-2 rounded-xl font-bold"
+              >
+
+                Assistir anúncio
+
+              </button>
+
+            </div>
+
+          )}
+
+        </motion.div>
+
+      </div>
+
+      {/* Botões adicionar alimento */}
+
       <div className="px-5 mt-4 flex gap-3">
+
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => { setEntryMode('text'); setShowFoodEntry(true); }}
+          onClick={() => {
+            setEntryMode('text');
+            setShowFoodEntry(true);
+          }}
           className="flex-1 flex flex-col items-start gap-1 p-4 rounded-[1.5rem] bg-card shadow-elevated border border-border"
         >
+
           <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center mb-1">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
-          <p className="text-sm font-extrabold text-foreground">{t('dash_addText')}</p>
-          <p className="text-xs text-muted-foreground">{t('dash_describeFood')}</p>
+
+          <p className="text-sm font-extrabold text-foreground">
+            {t('dash_addText')}
+          </p>
+
+          <p className="text-xs text-muted-foreground">
+            {t('dash_describeFood')}
+          </p>
+
         </motion.button>
+
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => { setEntryMode('photo'); setShowFoodEntry(true); }}
+          onClick={() => {
+            setEntryMode('photo');
+            setShowFoodEntry(true);
+          }}
           className="flex-1 flex flex-col items-start gap-1 p-4 rounded-[1.5rem] bg-card shadow-elevated border border-border"
         >
+
           <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center mb-1">
             <Camera className="w-5 h-5 text-white" />
           </div>
-          <p className="text-sm font-extrabold text-foreground">{t('dash_addPhoto')}</p>
-          <p className="text-xs text-muted-foreground">{t('dash_takePhoto')}</p>
+
+          <p className="text-sm font-extrabold text-foreground">
+            {t('dash_addPhoto')}
+          </p>
+
+          <p className="text-xs text-muted-foreground">
+            {t('dash_takePhoto')}
+          </p>
+
         </motion.button>
+
       </div>
 
-      {/* Today's food list */}
+      {/* Lista de alimentos */}
+
       <div className="px-5 mt-5">
+
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-extrabold text-foreground">{t('dash_today')}</h2>
-          <button onClick={() => navigate('/history')} className="text-xs text-muted-foreground font-semibold hover:text-foreground transition-colors">
+
+          <h2 className="text-base font-extrabold text-foreground">
+            {t('dash_today')}
+          </h2>
+
+          <button
+            onClick={() => navigate('/history')}
+            className="text-xs text-muted-foreground font-semibold hover:text-foreground transition-colors"
+          >
             {t('dash_viewHistory')}
           </button>
+
         </div>
+
         {todayEntries.length === 0 ? (
+
           <div className="bg-card rounded-[1.5rem] shadow-elevated border border-border p-8 text-center">
+
             <p className="text-3xl mb-2">🥗</p>
-            <p className="text-sm text-muted-foreground font-semibold">{t('dash_noFood')}</p>
+
+            <p className="text-sm text-muted-foreground font-semibold">
+              {t('dash_noFood')}
+            </p>
+
           </div>
+
         ) : (
+
           <div className="space-y-3">
+
             {todayEntries.map((entry, i) => (
+
               <motion.div
                 key={entry.id}
                 initial={{ opacity: 0, y: 8 }}
@@ -275,28 +412,52 @@ Assistir anúncio
                 transition={{ delay: i * 0.04 }}
                 className="flex items-center gap-3 p-4 bg-card rounded-[1.5rem] shadow-elevated border border-border"
               >
+
                 <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
                   <span className="text-lg">🍽️</span>
                 </div>
+
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-extrabold text-foreground capitalize truncate">{entry.name}</p>
-                  <p className="text-xs text-muted-foreground">{entry.quantity}</p>
+
+                  <p className="text-sm font-extrabold text-foreground capitalize truncate">
+                    {entry.name}
+                  </p>
+
+                  <p className="text-xs text-muted-foreground">
+                    {entry.quantity}
+                  </p>
+
                 </div>
-                <p className="text-sm font-extrabold text-foreground whitespace-nowrap">{entry.nutrients.calories} kcal</p>
+
+                <p className="text-sm font-extrabold text-foreground whitespace-nowrap">
+                  {entry.nutrients.calories} kcal
+                </p>
+
                 <button
-                  onClick={() => { deleteEntry(entry.id); refresh(); }}
+                  onClick={() => {
+                    deleteEntry(entry.id);
+                    refresh();
+                  }}
                   className="p-2 rounded-xl hover:bg-destructive/10 transition-colors flex-shrink-0"
                   aria-label={t('dash_removeFood')}
                 >
+
                   <Trash2 className="w-4 h-4 text-destructive" />
+
                 </button>
+
               </motion.div>
+
             ))}
+
           </div>
+
         )}
+
       </div>
 
       {balloon && balloonData[balloon] && (
+
         <InfoBalloon
           visible={true}
           title={balloonData[balloon].title}
@@ -304,14 +465,43 @@ Assistir anúncio
           color={balloonData[balloon].color}
           onClose={() => setBalloon(null)}
         />
+
       )}
 
-      <FoodEntryDialog open={showFoodEntry} onClose={() => setShowFoodEntry(false)} onAdded={refresh} dailyGoal={profile.dailyCalorieGoal} onShowAd={handleShowAd} />
-      <FoodDetailSheet open={showDetail} onClose={() => setShowDetail(false)} dailyGoal={profile.dailyCalorieGoal} onUpdate={refresh} />
-      <SettingsDialog open={showSettings} onClose={() => setShowSettings(false)} onUpdate={refresh} />
-      <AdDialog open={showAd} onClose={() => setShowAd(false)} onPremium={() => { setShowAd(false); navigate('/premium'); }} />
+      <FoodEntryDialog
+        open={showFoodEntry}
+        onClose={() => setShowFoodEntry(false)}
+        onAdded={refresh}
+        dailyGoal={profile.dailyCalorieGoal}
+        onShowAd={handleShowAd}
+      />
+
+      <FoodDetailSheet
+        open={showDetail}
+        onClose={() => setShowDetail(false)}
+        dailyGoal={profile.dailyCalorieGoal}
+        onUpdate={refresh}
+      />
+
+      <SettingsDialog
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        onUpdate={refresh}
+      />
+
+      <AdDialog
+        open={showAd}
+        onClose={() => setShowAd(false)}
+        onPremium={() => {
+          setShowAd(false);
+          navigate('/premium');
+        }}
+      />
+
     </div>
+
   );
+
 };
 
 export default Dashboard;
