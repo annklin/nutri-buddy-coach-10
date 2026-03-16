@@ -35,6 +35,21 @@ const Dashboard = () => {
 });
 
   useEffect(() => { initAdMob(); }, []);
+  useEffect(() => {
+
+  const interval = setInterval(() => {
+
+    const unlockTime = Number(localStorage.getItem("macroUnlock") || 0);
+
+    if (Date.now() > unlockTime) {
+      setMacrosUnlocked(false);
+    }
+
+  }, 30000);
+
+  return () => clearInterval(interval);
+
+}, []);
 
   const handleShowAd = useCallback(async () => {
     const shown = await showInterstitialAd();
