@@ -22,6 +22,7 @@ const queryClient = new QueryClient();
 function App() {
 
   useEffect(() => {
+
     initAdMob();
 
     const params = new URLSearchParams(window.location.search);
