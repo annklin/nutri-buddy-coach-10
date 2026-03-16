@@ -1,94 +1,55 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import React, { useEffect, useState } from "react";
+import { StatusBar } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Index from "./pages/Index";
-import History from "./pages/History";
 import Premium from "./pages/Premium";
 import PaymentSuccess from "./pages/PaymentSuccess";
-import NotFound from "./pages/NotFound";
+import { initAdMob } from "./lib/admob";
 
-import { useEffect, useState } from "react";
-import { initAdMob, showRewardedAd } from "@/lib/admob";
+const Stack = createNativeStackNavigator();
 
-const queryClient = new QueryClient();
-
-function App() {
+export default function App() {
   const [isPremium, setIsPremium] = useState(false);
-  const [anunciosAssistidos, setAnunciosAssistidos] = useState(0);
-  const MAX_ANUNCIOS = 5;
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
     initAdMob();
 
-    // Detecta Premium via URL ou localStorage
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("premium") === "true") {
-      localStorage.setItem("premium_user", "true");
-      setIsPremium(true);
-      window.history.replaceState({}, document.title, "/");
-    } else if (localStorage.getItem("premium_user") === "true") {
-      setIsPremium(true);
-    }
+    AsyncStorage.getItem("premium_user").then(val => {
+      if (val === "true") setIsPremium(true);
+    });
 
-    // Aplica tema escuro persistente
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    }
+    AsyncStorage.getItem("theme").then(val => {
+      if (val === "dark") setTheme("dark");
+    });
   }, []);
 
-  // Função para liberar alimento após anúncio
-  async function liberarAlimento(alimentoId: number) {
-    if (isPremium) return true;
-    if (anunciosAssistidos >= MAX_ANUNCIOS) return false;
+  const toggleTheme = async () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    await AsyncStorage.setItem("theme", newTheme);
+  };
 
-    const sucesso = await showRewardedAd();
-    if (sucesso) {
-      setAnunciosAssistidos(prev => prev + 1);
-      return true;
-    }
-    return false;
-  }
-
-  // Alterna tema escuro
-  function toggleTheme(isDark: boolean) {
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }
+  const ativarPremium = async () => {
+    setIsPremium(true);
+    await AsyncStorage.setItem("premium_user", "true");
+  };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route
-                path="/"
-                element={<Index isPremium={isPremium} liberarAlimento={liberarAlimento} />}
-              />
-              <Route path="/history" element={<History />} />
-              <Route path="/premium" element={<Premium />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <NavigationContainer>
+      <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Index">
+          {props => <Index {...props} isPremium={isPremium} />}
+        </Stack.Screen>
+        <Stack.Screen name="Premium">
+          {props => <Premium {...props} toggleTheme={toggleTheme} ativarPremium={ativarPremium} />}
+        </Stack.Screen>
+        <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-export default App;
