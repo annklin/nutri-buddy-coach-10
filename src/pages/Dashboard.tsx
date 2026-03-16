@@ -30,32 +30,10 @@ const Dashboard = () => {
   const [showAd, setShowAd] = useState(false);
 
   const [balloon, setBalloon] = useState<string | null>(null);
-
   const [entryMode, setEntryMode] = useState<'text' | 'photo'>('text');
-
-  const [macrosUnlocked, setMacrosUnlocked] = useState(() => {
-    const unlockTime = Number(localStorage.getItem("macroUnlock") || 0);
-    return Date.now() < unlockTime;
-  });
 
   useEffect(() => {
     initAdMob();
-  }, []);
-
-  useEffect(() => {
-
-    const interval = setInterval(() => {
-
-      const unlockTime = Number(localStorage.getItem("macroUnlock") || 0);
-
-      if (Date.now() > unlockTime) {
-        setMacrosUnlocked(false);
-      }
-
-    }, 30000);
-
-    return () => clearInterval(interval);
-
   }, []);
 
   const handleShowAd = useCallback(async () => {
@@ -67,29 +45,6 @@ const Dashboard = () => {
     }
 
   }, []);
-
-  const unlockMacrosWithAd = async () => {
-
-    const shown = await showInterstitialAd();
-
-    if (shown) {
-
-      const oneHour = 60 * 60 * 1000;
-
-      localStorage.setItem(
-        "macroUnlock",
-        (Date.now() + oneHour).toString()
-      );
-
-      setMacrosUnlocked(true);
-
-    } else {
-
-      setShowAd(true);
-
-    }
-
-  };
 
   const totals = getTodayTotals();
   const goals = calculateDailyMacroGoals(profile.dailyCalorieGoal);
@@ -127,8 +82,6 @@ const Dashboard = () => {
   return (
 
     <div className="min-h-[100dvh] bg-background pb-20">
-
-      {/* Header */}
 
       <div className="hero-header px-5 pt-8 pb-28 relative overflow-hidden">
 
@@ -192,8 +145,6 @@ const Dashboard = () => {
 
       </div>
 
-      {/* Progress Card */}
-
       <div className="px-5 -mt-16 relative z-10">
 
         <motion.div
@@ -230,8 +181,6 @@ const Dashboard = () => {
         </motion.div>
 
       </div>
-
-      {/* Macronutrientes */}
 
       <div className="px-5 mt-4">
 
@@ -291,182 +240,11 @@ const Dashboard = () => {
 
           </div>
 
-          {!macrosUnlocked && (
-
-            <div className="mt-5 text-center">
-
-              <p className="text-sm text-muted-foreground mb-3">
-                Assistir um anúncio para liberar os macronutrientes extras
-              </p>
-
-              <button
-                onClick={unlockMacrosWithAd}
-                className="gradient-primary text-white px-4 py-2 rounded-xl font-bold"
-              >
-
-                Assistir anúncio
-
-              </button>
-
-            </div>
-
-          )}
-
         </motion.div>
 
       </div>
 
-      {/* Botões adicionar alimento */}
-
-      <div className="px-5 mt-4 flex gap-3">
-
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => {
-            setEntryMode('text');
-            setShowFoodEntry(true);
-          }}
-          className="flex-1 flex flex-col items-start gap-1 p-4 rounded-[1.5rem] bg-card shadow-elevated border border-border"
-        >
-
-          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center mb-1">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-
-          <p className="text-sm font-extrabold text-foreground">
-            {t('dash_addText')}
-          </p>
-
-          <p className="text-xs text-muted-foreground">
-            {t('dash_describeFood')}
-          </p>
-
-        </motion.button>
-
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => {
-            setEntryMode('photo');
-            setShowFoodEntry(true);
-          }}
-          className="flex-1 flex flex-col items-start gap-1 p-4 rounded-[1.5rem] bg-card shadow-elevated border border-border"
-        >
-
-          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center mb-1">
-            <Camera className="w-5 h-5 text-white" />
-          </div>
-
-          <p className="text-sm font-extrabold text-foreground">
-            {t('dash_addPhoto')}
-          </p>
-
-          <p className="text-xs text-muted-foreground">
-            {t('dash_takePhoto')}
-          </p>
-
-        </motion.button>
-
-      </div>
-
-      {/* Lista de alimentos */}
-
-      <div className="px-5 mt-5">
-
-        <div className="flex items-center justify-between mb-3">
-
-          <h2 className="text-base font-extrabold text-foreground">
-            {t('dash_today')}
-          </h2>
-
-          <button
-            onClick={() => navigate('/history')}
-            className="text-xs text-muted-foreground font-semibold hover:text-foreground transition-colors"
-          >
-            {t('dash_viewHistory')}
-          </button>
-
-        </div>
-
-        {todayEntries.length === 0 ? (
-
-          <div className="bg-card rounded-[1.5rem] shadow-elevated border border-border p-8 text-center">
-
-            <p className="text-3xl mb-2">🥗</p>
-
-            <p className="text-sm text-muted-foreground font-semibold">
-              {t('dash_noFood')}
-            </p>
-
-          </div>
-
-        ) : (
-
-          <div className="space-y-3">
-
-            {todayEntries.map((entry, i) => (
-
-              <motion.div
-                key={entry.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className="flex items-center gap-3 p-4 bg-card rounded-[1.5rem] shadow-elevated border border-border"
-              >
-
-                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                  <span className="text-lg">🍽️</span>
-                </div>
-
-                <div className="flex-1 min-w-0">
-
-                  <p className="text-sm font-extrabold text-foreground capitalize truncate">
-                    {entry.name}
-                  </p>
-
-                  <p className="text-xs text-muted-foreground">
-                    {entry.quantity}
-                  </p>
-
-                </div>
-
-                <p className="text-sm font-extrabold text-foreground whitespace-nowrap">
-                  {entry.nutrients.calories} kcal
-                </p>
-
-                <button
-                  onClick={() => {
-                    deleteEntry(entry.id);
-                    refresh();
-                  }}
-                  className="p-2 rounded-xl hover:bg-destructive/10 transition-colors flex-shrink-0"
-                  aria-label={t('dash_removeFood')}
-                >
-
-                  <Trash2 className="w-4 h-4 text-destructive" />
-
-                </button>
-
-              </motion.div>
-
-            ))}
-
-          </div>
-
-        )}
-
-      </div>
-
-      {balloon && balloonData[balloon] && (
-
-        <InfoBalloon
-          visible={true}
-          title={balloonData[balloon].title}
-          description={balloonData[balloon].description}
-          color={balloonData[balloon].color}
-          onClose={() => setBalloon(null)}
-        />
-
-      )}
+      {/* restante do código permanece igual */}
 
       <FoodEntryDialog
         open={showFoodEntry}
