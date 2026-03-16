@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { showRewardedAd } from "@/lib/admob";
+import React, { useState } from "react";
 
 interface IndexProps {
   isPremium: boolean;
+  liberarAlimento: (id: number) => Promise<boolean>;
 }
 
 interface Alimento {
@@ -19,28 +19,12 @@ const alimentos: Alimento[] = [
   { id: 5, nome: "Aveia", macronutrientes: "Carbs: 12g, Proteína: 2.5g, Gordura: 1.5g" },
 ];
 
-const Index: React.FC<IndexProps> = ({ isPremium }) => {
+const Index: React.FC<IndexProps> = ({ isPremium, liberarAlimento }) => {
   const [alimentosLiberados, setAlimentosLiberados] = useState<number[]>([]);
-  const MAX_ANUNCIOS = 5;
-  const [anunciosAssistidos, setAnunciosAssistidos] = useState(0);
 
-  // Função para liberar alimento após anúncio
-  const liberarAlimento = async (id: number) => {
-    if (isPremium) {
-      if (!alimentosLiberados.includes(id)) {
-        setAlimentosLiberados(prev => [...prev, id]);
-      }
-      return;
-    }
-
-    if (anunciosAssistidos >= MAX_ANUNCIOS) {
-      alert("Máximo de anúncios atingido. Aguarde.");
-      return;
-    }
-
-    const sucesso = await showRewardedAd();
-    if (sucesso) {
-      setAnunciosAssistidos(prev => prev + 1);
+  const handleLiberar = async (id: number) => {
+    const sucesso = await liberarAlimento(id);
+    if (sucesso && !alimentosLiberados.includes(id)) {
       setAlimentosLiberados(prev => [...prev, id]);
     }
   };
@@ -56,7 +40,7 @@ const Index: React.FC<IndexProps> = ({ isPremium }) => {
               {isPremium || alimentosLiberados.includes(al.id) ? (
                 <p>{al.macronutrientes}</p>
               ) : (
-                <button onClick={() => liberarAlimento(al.id)}>
+                <button onClick={() => handleLiberar(al.id)}>
                   Assistir anúncio para liberar macronutrientes
                 </button>
               )}
