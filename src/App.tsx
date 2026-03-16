@@ -23,6 +23,14 @@ function App() {
 
   useEffect(() => {
     initAdMob();
+
+    const params = new URLSearchParams(window.location.search);
+    const premium = params.get("premium");
+
+    if (premium === "true") {
+      localStorage.setItem("premium_user", "true");
+    }
+
   }, []);
 
   return (
