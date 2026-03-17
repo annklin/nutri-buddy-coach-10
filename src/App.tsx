@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -22,10 +21,10 @@ export default function App() {
 
   const loadSettings = async () => {
     try {
-      const premium = await AsyncStorage.getItem("premium_user");
+      const premium = await localStorage.getItem("premium_user");
       if (premium === "true") setIsPremium(true);
 
-      const savedTheme = await AsyncStorage.getItem("theme");
+      const savedTheme = await localStorage.getItem("theme");
       if (savedTheme === "dark") setTheme("dark");
     } catch (err) {
       console.log("Erro carregando preferências", err);
@@ -38,7 +37,7 @@ export default function App() {
     setTheme(newTheme);
 
     try {
-      await AsyncStorage.setItem("theme", newTheme);
+      await localStorage.setItem("theme", newTheme);
     } catch (err) {
       console.log("Erro salvando tema");
     }
@@ -47,7 +46,7 @@ export default function App() {
   const ativarPremium = async () => {
     try {
       setIsPremium(true);
-      await AsyncStorage.setItem("premium_user", "true");
+      await localStorage.setItem("premium_user", "true");
     } catch (err) {
       console.log("Erro ativando premium");
     }
