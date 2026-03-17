@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface PremiumProps {
   toggleTheme: () => void;
