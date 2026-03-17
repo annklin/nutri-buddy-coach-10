@@ -18,6 +18,12 @@ jobs:
         with:
           node-version: '22.x'
 
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: 📦 Instalar dependências
         run: npm install
 
