@@ -1,9 +1,8 @@
 import {
   AdMob,
-  AdmobConsentStatus,
   RewardAdPluginEvents,
 } from "@capacitor-community/admob";
-import { Capacitor } from '@capacitor/core';
+import { Capacitor } from "@capacitor/core";
 
 const REWARDED_AD_UNIT = "ca-app-pub-9088121551421320/8743324289";
 const INTERSTITIAL_AD_UNIT = "ca-app-pub-9088121551421320/1581297367";
@@ -14,34 +13,30 @@ let isNative = false;
 export async function initAdMob(): Promise<void> {
   if (initialized) return;
 
-  if (Capacitor.getPlatform() !== 'android') {
-    console.log('AdMob ignorado (web)');
+  // 🔥 evita crash na web
+  if (Capacitor.getPlatform() !== "android") {
+    console.log("AdMob ignorado (web)");
     return;
   }
 
   try {
     await AdMob.initialize({
       requestTrackingAuthorization: false,
-      initializeForTesting: true
+      initializeForTesting: true, // ⚠️ depois trocamos pra false
     });
 
-    // 🚨 DESATIVA CONSENTIMENTO TEMPORARIAMENTE
-    // const consentInfo = await AdMob.requestConsentInfo();
-
     isNative = true;
-
+    console.log("AdMob iniciado");
   } catch (error) {
-    console.log('Erro ao iniciar AdMob:', error);
+    console.log("Erro ao iniciar AdMob:", error);
     isNative = false;
   }
 
   initialized = true;
 }
+
 export async function showInterstitialAd(): Promise<void> {
-  if (!isNative) {
-    console.log("Interstitial ignorado (web)");
-    return;
-  }
+  if (!isNative) return;
 
   try {
     await AdMob.prepareInterstitial({
@@ -56,10 +51,7 @@ export async function showInterstitialAd(): Promise<void> {
 }
 
 export async function showRewardedAd(): Promise<boolean> {
-  if (!isNative) {
-    console.log("Rewarded ad ignorado (web)");
-    return false;
-  }
+  if (!isNative) return false;
 
   try {
     await AdMob.prepareRewardVideoAd({
