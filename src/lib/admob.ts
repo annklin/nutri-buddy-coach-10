@@ -35,13 +35,13 @@ export async function initAdMob(): Promise<void> {
   initialized = true;
 }
 
-    const consentInfo = await AdMob.requestConsentInfo();
+//    const consentInfo = await AdMob.requestConsentInfo();
 
     if (
       consentInfo.isConsentFormAvailable &&
       consentInfo.status === AdmobConsentStatus.REQUIRED
     ) {
-      await AdMob.showConsentForm();
+     // await AdMob.showConsentForm();
     }
 
     isNative = true;
