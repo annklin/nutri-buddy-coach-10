@@ -18,36 +18,61 @@ export default function App() {
   useEffect(() => {
     initAdMob();
 
-    AsyncStorage.getItem("premium_user").then(val => {
-      if (val === "true") setIsPremium(true);
-    });
-
-    AsyncStorage.getItem("theme").then(val => {
-      if (val === "dark") setTheme("dark");
-    });
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const premium = await AsyncStorage.getItem("premium_user");
+      if (premium === "true") setIsPremium(true);
+
+      const savedTheme = await AsyncStorage.getItem("theme");
+      if (savedTheme === "dark") setTheme("dark");
+    } catch (err) {
+      console.log("Erro carregando preferências", err);
+    }
+  };
 
   const toggleTheme = async () => {
     const newTheme = theme === "dark" ? "light" : "dark";
+
     setTheme(newTheme);
-    await AsyncStorage.setItem("theme", newTheme);
+
+    try {
+      await AsyncStorage.setItem("theme", newTheme);
+    } catch (err) {
+      console.log("Erro salvando tema");
+    }
   };
 
   const ativarPremium = async () => {
-    setIsPremium(true);
-    await AsyncStorage.setItem("premium_user", "true");
+    try {
+      setIsPremium(true);
+      await AsyncStorage.setItem("premium_user", "true");
+    } catch (err) {
+      console.log("Erro ativando premium");
+    }
   };
 
   return (
     <NavigationContainer>
       <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
+
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Index">
-          {props => <Index {...props} isPremium={isPremium} />}
+          {(props) => <Index {...props} isPremium={isPremium} />}
         </Stack.Screen>
+
         <Stack.Screen name="Premium">
-          {props => <Premium {...props} toggleTheme={toggleTheme} ativarPremium={ativarPremium} />}
+          {(props) => (
+            <Premium
+              {...props}
+              toggleTheme={toggleTheme}
+              ativarPremium={ativarPremium}
+            />
+          )}
         </Stack.Screen>
+
         <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
       </Stack.Navigator>
     </NavigationContainer>
