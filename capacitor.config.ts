@@ -5,6 +5,9 @@ const config: CapacitorConfig = {
   appName: "Rabbit",
   webDir: "dist",
   bundledWebRuntime: false
+  android: {
+    minSdkVersion: 24
+  }
 };
 
 export default config;
