@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Index from "./pages/Index";
 import Premium from "./pages/Premium";
 import PaymentSuccess from "./pages/PaymentSuccess";
-import { initAdMob } from "./lib/admob";
 
-const Stack = createNativeStackNavigator();
+import { initAdMob } from "./lib/admob";
 
 export default function App() {
   const [isPremium, setIsPremium] = useState(false);
@@ -15,63 +13,65 @@ export default function App() {
 
   useEffect(() => {
     initAdMob();
-
     loadSettings();
   }, []);
 
-  const loadSettings = async () => {
+  const loadSettings = () => {
     try {
-      const premium = await localStorage.getItem("premium_user");
+      const premium = localStorage.getItem("premium_user");
       if (premium === "true") setIsPremium(true);
 
-      const savedTheme = await localStorage.getItem("theme");
-      if (savedTheme === "dark") setTheme("dark");
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") setTheme("light");
     } catch (err) {
       console.log("Erro carregando preferências", err);
     }
   };
 
-  const toggleTheme = async () => {
+  const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
 
     setTheme(newTheme);
 
     try {
-      await localStorage.setItem("theme", newTheme);
+      localStorage.setItem("theme", newTheme);
     } catch (err) {
       console.log("Erro salvando tema");
     }
   };
 
-  const ativarPremium = async () => {
+  const ativarPremium = () => {
     try {
       setIsPremium(true);
-      await localStorage.setItem("premium_user", "true");
+      localStorage.setItem("premium_user", "true");
     } catch (err) {
       console.log("Erro ativando premium");
     }
   };
 
   return (
-    <NavigationContainer>
-      
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Index">
-          {(props) => <Index {...props} isPremium={isPremium} />}
-        </Stack.Screen>
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={<Index isPremium={isPremium} />}
+        />
 
-        <Stack.Screen name="Premium">
-          {(props) => (
+        <Route
+          path="/premium"
+          element={
             <Premium
-              {...props}
               toggleTheme={toggleTheme}
               ativarPremium={ativarPremium}
             />
-          )}
-        </Stack.Screen>
+          }
+        />
 
-        <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
-      </Stack.Navigator>
-    </NavigationContainer>
+        <Route
+          path="/payment-success"
+          element={<PaymentSuccess />}
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
