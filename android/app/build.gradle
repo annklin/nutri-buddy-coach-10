@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "app.lovable.aa1646eb938b483d941bdc95db20b728"
+    namespace = "com.rabbitnutri.buddy"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.lovable.aa1646eb938b483d941bdc95db20b728"
+        applicationId "com.rabbitnutri.buddy"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
