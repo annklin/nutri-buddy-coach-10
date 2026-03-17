@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { StatusBar } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -56,8 +55,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
-
+      
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Index">
           {(props) => <Index {...props} isPremium={isPremium} />}
