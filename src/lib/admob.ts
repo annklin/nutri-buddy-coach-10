@@ -5,6 +5,7 @@ import {
 } from "@capacitor-community/admob";
 
 const REWARDED_AD_UNIT = "ca-app-pub-9088121551421320/8743324289";
+const INTERSTITIAL_AD_UNIT = "ca-app-pub-9088121551421320/1581297367";
 
 let initialized = false;
 let isNative = false;
@@ -31,6 +32,24 @@ export async function initAdMob(): Promise<void> {
   }
 
   initialized = true;
+}
+
+export async function showInterstitialAd(): Promise<void> {
+  if (!isNative) {
+    console.log("Interstitial ignorado (web)");
+    return;
+  }
+
+  try {
+    await AdMob.prepareInterstitial({
+      adId: INTERSTITIAL_AD_UNIT,
+      isTesting: true,
+    });
+
+    await AdMob.showInterstitial();
+  } catch (error) {
+    console.log("Erro interstitial", error);
+  }
 }
 
 export async function showRewardedAd(): Promise<boolean> {
