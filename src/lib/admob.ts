@@ -14,7 +14,6 @@ let isNative = false;
 export async function initAdMob(): Promise<void> {
   if (initialized) return;
 
-  // 🚨 ESSENCIAL: só roda no app nativo
   if (Capacitor.getPlatform() !== 'android') {
     console.log('AdMob ignorado (web)');
     return;
@@ -34,7 +33,6 @@ export async function initAdMob(): Promise<void> {
 
   initialized = true;
 }
-
 //    const consentInfo = await AdMob.requestConsentInfo();
 
     if (
