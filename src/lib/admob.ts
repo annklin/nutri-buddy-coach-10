@@ -25,26 +25,20 @@ export async function initAdMob(): Promise<void> {
       initializeForTesting: true
     });
 
-    isNative = true;
-  } catch (error) {
-    console.log('Erro ao iniciar AdMob:', error);
-    isNative = false;
-  }
-
-  initialized = true;
-}
-//    const consentInfo = await AdMob.requestConsentInfo();
+    // ✅ AGORA ESTÁ NO LUGAR CERTO
+    const consentInfo = await AdMob.requestConsentInfo();
 
     if (
       consentInfo.isConsentFormAvailable &&
       consentInfo.status === AdmobConsentStatus.REQUIRED
     ) {
-     // await AdMob.showConsentForm();
+      // await AdMob.showConsentForm();
     }
 
     isNative = true;
+
   } catch (error) {
-    console.log("AdMob não disponível no ambiente web");
+    console.log('Erro ao iniciar AdMob:', error);
     isNative = false;
   }
 
