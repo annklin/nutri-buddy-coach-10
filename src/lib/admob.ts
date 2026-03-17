@@ -25,15 +25,8 @@ export async function initAdMob(): Promise<void> {
       initializeForTesting: true
     });
 
-    // ✅ AGORA ESTÁ NO LUGAR CERTO
-    const consentInfo = await AdMob.requestConsentInfo();
-
-    if (
-      consentInfo.isConsentFormAvailable &&
-      consentInfo.status === AdmobConsentStatus.REQUIRED
-    ) {
-      // await AdMob.showConsentForm();
-    }
+    // 🚨 DESATIVA CONSENTIMENTO TEMPORARIAMENTE
+    // const consentInfo = await AdMob.requestConsentInfo();
 
     isNative = true;
 
@@ -44,7 +37,6 @@ export async function initAdMob(): Promise<void> {
 
   initialized = true;
 }
-
 export async function showInterstitialAd(): Promise<void> {
   if (!isNative) {
     console.log("Interstitial ignorado (web)");
