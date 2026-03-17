@@ -3,6 +3,7 @@ import {
   AdmobConsentStatus,
   RewardAdPluginEvents,
 } from "@capacitor-community/admob";
+import { Capacitor } from '@capacitor/core';
 
 const REWARDED_AD_UNIT = "ca-app-pub-9088121551421320/8743324289";
 const INTERSTITIAL_AD_UNIT = "ca-app-pub-9088121551421320/1581297367";
@@ -13,8 +14,26 @@ let isNative = false;
 export async function initAdMob(): Promise<void> {
   if (initialized) return;
 
+  // 🚨 ESSENCIAL: só roda no app nativo
+  if (Capacitor.getPlatform() !== 'android') {
+    console.log('AdMob ignorado (web)');
+    return;
+  }
+
   try {
-    await AdMob.initialize();
+    await AdMob.initialize({
+      requestTrackingAuthorization: false,
+      initializeForTesting: true
+    });
+
+    isNative = true;
+  } catch (error) {
+    console.log('Erro ao iniciar AdMob:', error);
+    isNative = false;
+  }
+
+  initialized = true;
+}
 
     const consentInfo = await AdMob.requestConsentInfo();
 
