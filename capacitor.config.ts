@@ -1,9 +1,10 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.aa1646eb938b483d941bdc95db20b728',
-  appName: 'Rabbit',
-  webDir: 'dist',
+  appId: "com.rabbitnutri.buddy",
+  appName: "Rabbit",
+  webDir: "dist",
+  bundledWebRuntime: false
 };
 
 export default config;
